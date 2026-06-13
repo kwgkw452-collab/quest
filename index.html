@@ -2,175 +2,122 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Eigo DE Quest - Stage 1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eigo DE Quest</title>
     <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f4f8; text-align: center; padding: 20px; color: #333; }
-        #game-box { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; position: relative; }
-        .character-text { font-size: 1.2rem; line-height: 1.6; margin: 20px 0; min-height: 60px; font-weight: bold; text-align: left; background: #fffbeb; padding: 15px; border-radius: 8px; border-left: 5px solid #fbbf24; }
-        .english-text { font-size: 1.4rem; color: #1e3a8a; font-family: 'Courier New', Courier, monospace; margin: 15px 0; background: #e0f2fe; padding: 15px; border-radius: 8px; font-weight: bold; border-left: 5px solid #3b82f6; position: absolute; top: 20px; left: 20px; max-width: 80%; z-index: 5; }
-        .btn-mic { background-color: #ef4444; color: white; border: none; padding: 15px 30px; font-size: 1.2rem; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; margin-top: 10px; transition: background 0.2s; }
-        .btn-mic:disabled { background-color: #9ca3af; cursor: not-allowed; }
-        .btn-next { background-color: #3b82f6; color: white; border: none; padding: 12px 30px; font-size: 1.1rem; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        
-        #visual-area { width: 100%; height: 350px; background-image: url('images/bg_forest.png'), url('images/bg_forest.jpg'); background-repeat: no-repeat; background-position: center center; background-size: cover; border-radius: 8px; position: relative; margin-bottom: 20px; overflow: hidden; }
-        
-        /* ピコの配置（子パイロットさん作） */
-        #pico-image { position: absolute; bottom: 10px; left: 20px; width: 130px; z-index: 2; transition: all 0.2s; }
-        
-        /* 【プロの裏技】3コマ連なった1枚の画像から、コングを1匹ずつくり抜いて表示する仕組み */
-        #kong-window { position: absolute; bottom: 0; right: 10px; width: 220px; height: 330px; overflow: hidden; z-index: 1; transition: all 0.3s; }
-        #kong-sprite { position: absolute; top: 0; left: 0; width: 660px; height: 330px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #000;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 100vh;
+            max-height: 600px;
+            background-color: #111;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            overflow: hidden;
+        }
+        /* 背景画像：JPEG形式でも動くように調整しました */
+        #bg-image {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            /* 先生が保存した画像が.jpgでも.jpegでも反応するようにしています */
+            background-image: url('images/ch1_bg_forest.jpg'), url('images/ch1_bg_forest.jpeg');
+            background-size: cover;
+            background-position: center;
+            transform: scale(1.1);
+            transition: transform 8s ease-out;
+        }
+        #bg-image.zoom {
+            transform: scale(1.0);
+        }
+        #layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%);
+        }
+        #title-logo {
+            position: absolute;
+            top: 15%; width: 100%; text-align: center;
+            color: #fff; font-size: 3rem; font-weight: bold;
+            letter-spacing: 5px; text-shadow: 0 0 15px rgba(255,215,0,0.6);
+            opacity: 0; transform: translateY(-20px);
+            transition: all 2s ease-out;
+        }
+        #title-logo.show { opacity: 1; transform: translateY(0); }
+        #subtitle-box {
+            position: absolute;
+            bottom: 15%; left: 5%; width: 90%;
+            text-align: center; min-height: 80px;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .subtitle {
+            color: #fff; font-size: 1.5rem; line-height: 1.8;
+            font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,1);
+            opacity: 0; transform: scale(0.95);
+            transition: all 1.5s ease; position: absolute; width: 100%;
+        }
+        .subtitle.show { opacity: 1; transform: scale(1); }
+        #start-btn {
+            position: absolute; bottom: 30%; left: 50%; transform: translateX(-50%);
+            padding: 15px 40px; font-size: 1.5rem; font-weight: bold; color: #fff;
+            background: linear-gradient(45deg, #ff4500, #ff8c00); border: none; border-radius: 30px;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(255,69,0,0.4); display: none; z-index: 10;
+        }
     </style>
 </head>
 <body>
 
-<div id="game-box">
-    <div style="background-color: #fee2e2; border: 1px solid #f87171; color: #991b1b; padding: 10px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 20px; font-weight: bold; text-align: left; position: relative; z-index: 10;">
-        ⚠️ iPhone・iPadを使っている人は、Safariだとマイクが動かないことがあります。必ず【Google Chromeアプリ】でこのページを開いてね！
+<div id="game-container">
+    <div id="bg-image"></div>
+    <div id="layer"></div>
+    <div id="title-logo">Eigo DE Quest</div>
+    
+    <div id="subtitle-box">
+        <div class="subtitle" id="line1">ある朝、目が覚めると……</div>
+        <div class="subtitle" id="line2">机の上に、見慣れない「古い地図」が置いてあった。</div>
+        <div class="subtitle" id="line3">「…コングの森へ来い。待っている…」</div>
+        <div class="subtitle" id="line4">不気味な声に導かれ、君の冒険が今、始まる！</div>
     </div>
 
-    <div id="visual-area">
-        <div id="english-display" class="english-text">Welcome to our wonderful world! Your English adventure starts here!</div>
-        <img id="pico-image" src="images/pico_default.png" alt="ピコ">
-        
-        <div id="kong-window">
-            <img id="kong-sprite" src="images/kong_all.png" alt="コング">
-        </div>
-    </div>
-    
-    <div id="dialogue-display" class="character-text">（扉が開いた！さあ、冒険の始まりだ！）</div>
-    
-    <div id="control-area">
-        <button class="btn-next" onclick="nextScene()">次へ ➔</button>
-    </div>
+    <button id="start-btn" onclick="alert('ここからピコとの出会い（第1章）へ繋がります！')">冒険を始める</button>
 </div>
 
 <script>
-    const scriptData = [
-        { scene: 1, pico: "normal", kongPos: 0, eng: "Welcome to our wonderful world! Your English adventure starts here!", jap: "（扉が開いた！さあ、冒険の始まりだ！）", mode: "click" },
-        { scene: 2, pico: "move", kongPos: 0, eng: "You are going into the wonderful world.", jap: "（ピコと一緒に、木漏れ日の差し込む森の奥へと歩いて進んでいく……）", mode: "click" },
-        { 
-            scene: 3, 
-            pico: "normal", 
-            kongPos: 0, /* 左コング（怒り） */
-            eng: "WHERE ARE YOU FROM!?", 
-            jap: "ピコ「うわわっ、マスター危ない！ボクの後ろに隠れて！……って、あれ？この大きいコング、僕たちに『国』を質問しているみたいだよ！\n\nマイクを押して元気に【Japan!】って叫ぼう！\n※叫んだあと、1〜2秒あわてずに待ってね！」", 
-            mode: "mic", 
-            answer: "japan" 
-        },
-        { 
-            scene: 4, 
-            pico: "normal", 
-            kongPos: -220, /* 中央コング（大号泣） */
-            eng: "My body is so big. But I am very shy. I want friends. But I say something, people go away... why?", 
-            jap: "コング（大号泣）「ウ、ウワァァァーーーン！！！答えてくれたァァアア！！俺の外見を見て逃げ出さずに、ちゃんと自分の国を教えてくれたァァァッ！」\n\nピコ「マスター……！『僕の体は大きいけれど、本当はシャイなんだ。友達が欲しいだけなのに、僕が声を出すとみんな怖がって逃げてしまう……なぜなんだろう？』って言ってるよ……。ずっと寂しくて泣いていたんだね……！」", 
-            mode: "click" 
-        },
-        { 
-            scene: 5, 
-            pico: "normal", 
-            kongPos: -440, /* 右コング（笑顔） */
-            eng: "Friend!? Are you my friend?", 
-            jap: "コング（切実な声）「ともだち……！？お前、俺の友達なのか……？」\n\nピコ「マスター！もちろん答えは決まってるよね！笑顔で【Yes!】ってマイクに叫ぼう！\n※叫んだあと、1〜2秒待ってね！」", 
-            mode: "mic", 
-            answer: "yes" 
-        },
-        { 
-            scene: 6, 
-            pico: "normal", 
-            kongPos: -440, /* 右コング（笑顔継続・中央へ寄る） */
-            eng: "Let us enjoy English together!", 
-            jap: "コング（お茶目な声）「ヤッタァーー！今日からよろしくね！」\n\nピコ「やったねマスター！！最高の友達ができたよ！君のたった一言の英語が、世界を変えたんだよ！さあ、旅へ、出発だーーー！」", 
-            mode: "end" 
-        }
-    ];
+    window.onload = function() {
+        const bg = document.getElementById('bg-image');
+        const logo = document.getElementById('title-logo');
+        
+        setTimeout(() => { bg.classList.add('zoom'); }, 100);
+        setTimeout(() => { logo.classList.add('show'); }, 1000);
+        
+        showLine('line1', 3000, 3000);
+        showLine('line2', 6500, 4000);
+        showLine('line3', 11000, 3500);
+        showLine('line4', 15000, 4000);
+        
+        setTimeout(() => {
+            document.getElementById('start-btn').style.display = 'block';
+        }, 19500);
+    };
 
-    let currentIdx = 0;
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recognition = null;
-    
-    if (SpeechRecognition) {
-        recognition = new SpeechRecognition();
-        recognition.lang = 'en-US';
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        
-        recognition.onresult = function(event) {
-            const resultText = event.results[0][0].transcript.toLowerCase().trim();
-            const targetAnswer = scriptData[currentIdx].answer;
-            if (resultText.includes(targetAnswer)) {
-                if(recognition) recognition.stop(); 
-                nextScene();
-            } else {
-                alert(`コング「ん？今なんて言ったんだ？」（君の発音: "${resultText}"） もう一度挑戦だ！`);
-                renderScene();
-            }
-        };
-        recognition.onerror = function() {
-            alert("うまく聞き取れませんでした。静かな場所で、もう一度ボタンを押してね！");
-            renderScene();
-        };
-    }
-
-    function renderScene() {
-        const data = scriptData[currentIdx];
-        
-        // コングの1枚絵から該当コマをガバッとスライド抽出
-        document.getElementById("kong-sprite").style.left = `${data.kongPos}px`;
-        
-        // 演出の切り替え
-        if(data.pico === "move") {
-            document.getElementById("pico-image").style.left = "60px";
-        } else {
-            document.getElementById("pico-image").style.left = "20px";
-        }
-        
-        if(currentIdx === 5) {
-            document.getElementById("kong-window").style.right = "150px"; // ラストはコングが中央寄りになる
-        } else {
-            document.getElementById("kong-window").style.right = "10px";
-        }
-
-        document.getElementById("english-display").innerText = data.eng;
-        document.getElementById("dialogue-display").innerHTML = data.jap.replace(/\n/g, '<br>');
-        
-        const ctrl = document.getElementById("control-area");
-        if (data.mode === "click") {
-            ctrl.innerHTML = `<button class="btn-next" onclick="nextScene()">次へ ➔</button>`;
-        } else if (data.mode === "mic") {
-            ctrl.innerHTML = `
-                <div style="margin-bottom: 10px;"><span id="status-text" style="font-size:0.9rem; color:#666;">ボタンを押して、ハッキリ喋ってね</span></div>
-                <button class="btn-mic" id="mic-trigger" onclick="startListening()">🎤 マイクを押して発音</button>
-            `;
-        } else if (data.mode === "end") {
-            ctrl.innerHTML = `<strong style="color: #22c55e; font-size: 1.6rem; display: block; margin-top: 20px;">🎉 第1章 クリア！お見事！ 🎉</strong><br><button class="btn-next" onclick="resetGame()" style="margin-top: 10px;">もう一度遊ぶ ➔</button>`;
-        }
-    }
-
-    function nextScene() {
-        if (currentIdx < scriptData.length - 1) {
-            currentIdx++;
-            renderScene();
-        }
-    }
-
-    function resetGame() {
-        currentIdx = 0;
-        renderScene();
-    }
-
-    function startListening() {
-        if (!recognition) return;
-        try { recognition.stop(); } catch(e){} 
-        
-        const btn = document.getElementById("mic-trigger");
-        if(btn) btn.disabled = true; 
-        
-        document.getElementById("status-text").innerText = "どうぞ！喋ってください...";
-        
-        try { recognition.start(); } catch(e){}
+    function showLine(id, delay, duration) {
+        setTimeout(() => {
+            const el = document.getElementById(id);
+            el.classList.add('show');
+            setTimeout(() => {
+                el.classList.remove('show');
+            }, duration);
+        }, delay);
     }
 </script>
-
 </body>
 </html>
