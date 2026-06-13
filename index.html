@@ -3,121 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eigo DE Quest</title>
+    <title>Eigo DE Quest - Chapter 1</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            background-color: #000;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        #game-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            height: 100vh;
-            max-height: 600px;
-            background-color: #111;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
-            overflow: hidden;
-        }
-        /* 背景画像：JPEG形式でも動くように調整しました */
-        #bg-image {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            /* 先生が保存した画像が.jpgでも.jpegでも反応するようにしています */
-            background-image: url('images/ch1_bg_forest.jpg'), url('images/ch1_bg_forest.jpeg');
-            background-size: cover;
-            background-position: center;
-            transform: scale(1.1);
-            transition: transform 8s ease-out;
-        }
-        #bg-image.zoom {
-            transform: scale(1.0);
-        }
-        #layer {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%);
-        }
-        #title-logo {
-            position: absolute;
-            top: 15%; width: 100%; text-align: center;
-            color: #fff; font-size: 3rem; font-weight: bold;
-            letter-spacing: 5px; text-shadow: 0 0 15px rgba(255,215,0,0.6);
-            opacity: 0; transform: translateY(-20px);
-            transition: all 2s ease-out;
-        }
-        #title-logo.show { opacity: 1; transform: translateY(0); }
-        #subtitle-box {
-            position: absolute;
-            bottom: 15%; left: 5%; width: 90%;
-            text-align: center; min-height: 80px;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .subtitle {
-            color: #fff; font-size: 1.5rem; line-height: 1.8;
-            font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,1);
-            opacity: 0; transform: scale(0.95);
-            transition: all 1.5s ease; position: absolute; width: 100%;
-        }
-        .subtitle.show { opacity: 1; transform: scale(1); }
-        #start-btn {
-            position: absolute; bottom: 30%; left: 50%; transform: translateX(-50%);
-            padding: 15px 40px; font-size: 1.5rem; font-weight: bold; color: #fff;
-            background: linear-gradient(45deg, #ff4500, #ff8c00); border: none; border-radius: 30px;
-            cursor: pointer; box-shadow: 0 5px 15px rgba(255,69,0,0.4); display: none; z-index: 10;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        
+        /* 画面共通スタイル */
+        .screen { position: absolute; width: 100%; height: 100%; display: none; justify-content: center; align-items: center; flex-direction: column; color: #fff; padding: 20px; box-sizing: border-box; }
+        .active { display: flex; }
+
+        /* ① YouTube画面 */
+        #video-container { position: relative; width: 100%; height: 100%; background: #000; }
+        #player { width: 100%; height: 100%; pointer-events: none; }
+        .skip-btn { position: absolute; bottom: 30px; right: 30px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #fff; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; z-index: 10; }
+
+        /* ② ログイン画面 */
+        .input-box { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.2); width: 100%; max-width: 400px; text-align: center; }
+        .input-box h2 { font-size: 18px; margin-bottom: 20px; line-height: 1.6; color: #ffd700; }
+        .text-input { width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; border: none; margin-bottom: 15px; text-align: center; }
+        .sub-text { font-size: 12px; color: #ccc; line-height: 1.5; margin-bottom: 20px; }
+
+        /* ③ お約束画面 */
+        .rule-box { background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; border: 2px solid #ffd700; width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+        .rule-box h2 { text-align: center; color: #ffd700; margin-bottom: 20px; font-size: 20px; }
+        .rule-item { margin-bottom: 15px; font-size: 14px; line-height: 1.6; }
+        .danger { color: #ff4d4d; font-weight: bold; }
+        .safe { color: #4da6ff; font-weight: bold; }
+
+        /* ④ ⑤ ゲーム本編画面 */
+        .game-bg { width: 100%; height: 100%; background-size: cover; background-position: center; transition: background-image 2s ease-in-out; position: relative; }
+        .msg-window { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 700px; background: rgba(0, 0, 0, 0.75); border: 2px solid #ffd700; border-radius: 10px; padding: 20px; min-height: 110px; cursor: pointer; box-sizing: border-box; }
+        .msg-text { font-size: 16px; line-height: 1.6; color: #fff; white-space: pre-wrap; }
+        .click-prompt { position: absolute; bottom: 8px; right: 15px; font-size: 11px; color: #ffd700; animation: blink 1.5s infinite; }
+
+        /* 共通ボタン */
+        .btn { background: linear-gradient(135deg, #ff9900, #ff5500); color: #fff; border: none; padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 25px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.1s; width: 100%; }
+        .btn:active { transform: scale(0.95); }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <div id="bg-image"></div>
-    <div id="layer"></div>
-    <div id="title-logo">Eigo DE Quest</div>
-    
-    <div id="subtitle-box">
-        <div class="subtitle" id="line1">ある朝、目が覚めると……</div>
-        <div class="subtitle" id="line2">机の上に、見慣れない「古い地図」が置いてあった。</div>
-        <div class="subtitle" id="line3">「…コングの森へ来い。待っている…」</div>
-        <div class="subtitle" id="line4">不気味な声に導かれ、君の冒険が今、始まる！</div>
+    <div id="screen-video" class="screen active">
+        <div id="video-container">
+            <div id="player"></div>
+            <button class="skip-btn" onclick="nextScreen(2)">Skip ≫</button>
+        </div>
     </div>
 
-    <button id="start-btn" onclick="alert('ここからピコとの出会い（第1章）へ繋がります！')">冒険を始める</button>
-</div>
+    <div id="screen-login" class="screen">
+        <div class="input-box">
+            <h2>この ぼうけんで あなたが よばれたい なまえ（ハンドルネーム）を おしえてね！</h2>
+            <input type="text" id="username" class="text-input" placeholder="なまえを入力してね" maxlength="10">
+            <p class="sub-text">※もし 前に だれかが つかっていたら、そのなまえは つかえません。すうじを たしたりして、きみだけの かっこいい なまえに してね？</p>
+            <button class="btn" onclick="saveName()">この名前で登録する！</button>
+        </div>
+    </div>
 
-<script>
-    window.onload = function() {
-        const bg = document.getElementById('bg-image');
-        const logo = document.getElementById('title-logo');
-        
-        setTimeout(() => { bg.classList.add('zoom'); }, 100);
-        setTimeout(() => { logo.classList.add('show'); }, 1000);
-        
-        showLine('line1', 3000, 3000);
-        showLine('line2', 6500, 4000);
-        showLine('line3', 11000, 3500);
-        showLine('line4', 15000, 4000);
-        
-        setTimeout(() => {
-            document.getElementById('start-btn').style.display = 'block';
-        }, 19500);
-    };
+    <div id="screen-rules" class="screen">
+        <div class="rule-box">
+            <h2>🌟 ディレクターからの たいせつな お約束 🌟</h2>
+            <div class="rule-item">この『Eigo DE Quest』は、みんなのために作られている進化と実験のフリーゲームです。</div>
+            <div class="rule-item class-danger"><span class="danger">⚠ 【データについてのお願い】</span><br>もしスマホが壊れても、最初に決めた『ハンドルネーム』を入れれば、また続きから始められるよ！だから絶対に忘れないように覚えておいてね？</div>
+            <div class="rule-item"><span class="safe">🛡 【あんしん機能】</span><br>モンスターに負けてもゲームオーバーはありません。次の日になれば体力は全部元通りに大復活します！</div>
+            <button class="btn" style="margin-top: 15px;" onclick="nextScreen(4)">お約束をままって 冒険をはじめる！</button>
+        </div>
+    </div>
 
-    function showLine(id, delay, duration) {
-        setTimeout(() => {
-            const el = document.getElementById(id);
-            el.classList.add('show');
-            setTimeout(() => {
-                el.classList.remove('show');
-            }, duration);
-        }, delay);
-    }
-</script>
+    <div id="screen-game" class="screen">
+        <div id="game-canvas" class="game-bg">
+            <div class="msg-window" onclick="advanceStory()">
+                <div id="story-text" class="msg-text"></div>
+                <div class="click-prompt">▼ 画面をタッチ</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // YouTube IFrame Player API の読み込み
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                videoId: 'XMDAmiNko6s', // 先生のYouTube動画ID
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 0,
+                    'rel': 0,
+                    'showinfo': 0,
+                    'modestbranding': 1,
+                    'playsinline': 1,
+                    'fs': 0
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            event.target.playVideo();
+        }
+
+        function onPlayerStateChange(event) {
+            // 動画が終了したら自動的に次の画面（ログイン）へ
+            if (event.data == YT.PlayerState.ENDED) {
+                nextScreen(2);
+            }
+        }
+
+        // 画面切り替えシステム
+        function nextScreen(screenNum) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            if (player && typeof player.stopVideo === 'function') {
+                player.stopVideo();
+            }
+            
+            if (screenNum === 2) {
+                document.getElementById('screen-login').classList.add('active');
+            } else if (screenNum === 3) {
+                document.getElementById('screen-rules').classList.add('active');
+            } else if (screenNum === 4) {
+                document.getElementById('screen-game').classList.add('active');
+                startGameStory();
+            }
+        }
+
+        // 名前保存
+        var pName = "ぼうけんしゃ";
+        function saveName() {
+            var input = document.getElementById('username').value.trim();
+            if (input !== "") {
+                pName = input;
+                nextScreen(3);
+            } else {
+                alert("なまえを入力してね！");
+            }
+        }
+
+        // ストーリーデータ（④と⑤の統合）
+        var storyStep = 0;
+        var storyLines = [];
+
+        function startGameStory() {
+            // 先生の作ってくれた神画像を背景にセット！
+            document.getElementById('game-canvas').style.backgroundImage = "url('images/ch1_desk.jpg')";
+            
+            storyLines = [
+                "── 都会の 自分の部屋で、静かな朝を 迎えた。",
+                "ふと 枕元を見ると、見覚えのない\n「謎のメモ」と「古びた地図」がポツンと置いてある。",
+                "メモには、こう書かれていた。\n\"Go to the forest. You can find the best thing for you!\"",
+                "「これから、あいつ（best thing）を探しに行こう。」",
+                "「これからは、英語しか通じない世界。\nでも大丈夫。僕がサポートするからね。」",
+                "君は 何かに吸い寄せられるように、\nその地図を握りしめ、森へと向かった。 (街を出る…)",
+                "【景色が少しずつ移り変わっていく…】\n都会のビル群 ➔ 郊外の街並みへ…",
+                "【景色がさらに深くなっていく…】\n郊外 ➔ 静かな田舎道へ…",
+                "【未知の領域へ…】\n田舎道 ➔ 薄暗く、誰も近づかない「森の入り口」へ…",
+                "（ざわざわ… 目の前の茂みが揺れた！）"
+            ];
+            storyStep = 0;
+            showText();
+        }
+
+        function showText() {
+            if (storyStep < storyLines.length) {
+                // グラデーション移動の演出（背景の切り替えダミー）
+                if (storyStep === 6) {
+                    // 郊外へ移動（背景を少し暗くするなどの演出用）
+                    document.getElementById('game-canvas').style.opacity = "0.9";
+                } else if (storyStep === 8) {
+                    // 森の入り口（今後はここに森の画像を入れられます）
+                    document.getElementById('game-canvas').style.opacity = "0.8";
+                }
+                
+                document.getElementById('story-text').innerText = storyLines[storyStep];
+            } else {
+                document.getElementById('story-text').innerText = "（ここから、光の粒子をまとったピコが現れる…！ 次のアップデートをお楽しみに！）";
+            }
+        }
+
+        function advanceStory() {
+            if (storyStep < storyLines.length) {
+                storyStep++;
+                showText();
+            }
+        }
+    </script>
 </body>
 </html>
