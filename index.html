@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eigo DE Quest - 第1章：コングの森（修正版）</title>
+    <title>Eigo DE Quest - 第1章：コングの森（絶対突破版）</title>
     <style>
         body, html {
             margin: 0;
@@ -168,14 +168,13 @@
             color: white;
             font-size: 32px;
             cursor: pointer;
-            display: none;
+            display: none; /* 初期は非表示、2秒後に可視化 */
             align-items: center;
             justify-content: center;
             box-shadow: 0 0 20px #ff0055;
         }
 
         .mic-button.pulse {
-            display: flex;
             animation: mic-glow 1.2s infinite alternate;
         }
 
@@ -221,7 +220,7 @@
         </div>
         <div class="login-box" style="margin-top: auto; margin-bottom: 8%;">
             <h2 style="color: #00e5ff; font-size: 20px; margin-top:0; line-height: 1.5;">このぼうけんで よばれたい<br>なまえ（ハンドルネーム）をおしえてね！</h2>
-            <input type="text" id="player-name" placeholder="ここに名前を入力してね" maxlength="12"><br>
+            <input type="text" id="player-name" placeholder="ここに名前を入力してね" value="マスター" maxlength="12"><br>
             <button class="btn-prime" onclick="startGame()">冒険をはじめる！</button>
         </div>
     </div>
@@ -233,7 +232,7 @@
             <div class="english-text" id="s2-en"></div>
             <div class="japanese-text" id="s2-ja" style="opacity:0;"></div>
             <div class="system-hint" id="s2-hint"></div>
-            <div class="mic-container"><button class="mic-button" id="mic-s2" onclick="startSpeechRecognition('open', handleScene2Success)">🎤</button></div>
+            <div class="mic-container"><button class="mic-button" id="mic-s2" onclick="startListeningSequence('open', handleScene2Success)">🎤</button></div>
         </div>
     </div>
 
@@ -244,7 +243,7 @@
             <div class="english-text" id="s4-en"></div>
             <div class="japanese-text" id="s4-ja" style="opacity:0;"></div>
             <div class="system-hint" id="s4-hint"></div>
-            <div class="mic-container"><button class="mic-button" id="mic-s4" onclick="startSpeechRecognition('any_name', handleScene4Success)">🎤</button></div>
+            <div class="mic-container"><button class="mic-button" id="mic-s4" onclick="startListeningSequence('any_name', handleScene4Success)">🎤</button></div>
         </div>
     </div>
 
@@ -255,7 +254,7 @@
             <div class="english-text" id="s5-en"></div>
             <div class="japanese-text" id="s5-ja" style="opacity:0;"></div>
             <div class="system-hint" id="s5-hint"></div>
-            <div class="mic-container"><button class="mic-button" id="mic-s5" onclick="startSpeechRecognition('location_catch', handleScene5Success)">🎤</button></div>
+            <div class="mic-container"><button class="mic-button" id="mic-s5" onclick="startListeningSequence('location_catch', handleScene5Success)">🎤</button></div>
         </div>
     </div>
 
@@ -266,7 +265,7 @@
             <div class="english-text" id="s6-en"></div>
             <div class="japanese-text" id="s6-ja" style="opacity:0;"></div>
             <div class="system-hint" id="s6-hint"></div>
-            <div class="mic-container"><button class="mic-button" id="mic-s6" onclick="startSpeechRecognition('yes', handleScene6Success)">🎤</button></div>
+            <div class="mic-container"><button class="mic-button" id="mic-s6" onclick="startListeningSequence('yes', handleScene6Success)">🎤</button></div>
         </div>
     </div>
 
@@ -278,7 +277,7 @@
 <audio id="se-success" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_up.ogg"></audio>
 <audio id="se-roar" src="https://actions.google.com/sounds/v1/animals/lion_growl.ogg"></audio>
 
-<!-- ハリウッドボイス用（パス指定用プレースホルダー） -->
+<!-- ハリウッドボイス用パス -->
 <audio id="voice-s2" src="path_to_drive/s2_listen_master.mp3"></audio>
 <audio id="voice-s4" src="path_to_drive/s4_whats_your_name.mp3"></audio>
 <audio id="voice-s5" src="path_to_drive/s5_where_are_you_from.mp3"></audio>
@@ -288,10 +287,111 @@
 <script>
     let masterName = "マスター";
     const container = document.getElementById('game-container');
+    let recognitionInstance = null;
+    let isListening = false;
+    let currentActiveCallback = null;
+    let currentTargetKeyword = "";
+
+    // 音声認識エンジンの完全起動とブラウザブロック常時回避
+    function initSpeechEngine() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("このブラウザは音声認識に対応していません。Google Chrome等の最新ブラウザをお使いください。");
+            return;
+        }
+        
+        recognitionInstance = new SpeechRecognition();
+        recognitionInstance.continuous = true; // バックグラウンドで勝手に途切れないようにする
+        recognitionInstance.interimResults = false;
+        recognitionInstance.maxAlternatives = 1;
+
+        // 常時稼働して声を拾い続けるバックグラウンド処理
+        recognitionInstance.onresult = function(event) {
+            if (!currentActiveCallback) return; // 判定不要な時はスルー
+
+            const lastIndex = event.results.length - 1;
+            const rawResult = event.results[lastIndex][0].transcript;
+            const cleanedResult = rawResult.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_~()]/g,"").trim();
+            console.log("バックグラウンド認識成功 -> 生データ:", rawResult, "大掃除後:", cleanedResult);
+
+            // 【完全意図汲み取りシステム】カタカナ・日本語誤変換・英語すべてを完全吸収
+            if (currentTargetKeyword === 'open') {
+                if (cleanedResult.includes('open') || cleanedResult.includes('op') || cleanedResult.includes('オープン') || cleanedResult.includes('おーぷん') || cleanedResult.includes('大分')) {
+                    executeSuccess();
+                } else { alertRetry(); }
+            } 
+            else if (currentTargetKeyword === 'any_name') {
+                if (rawResult.trim() !== "") {
+                    masterName = rawResult.trim();
+                    executeSuccess();
+                }
+            } 
+            else if (currentTargetKeyword === 'location_catch') {
+                if (cleanedResult.length > 0) {
+                    executeSuccess(); // 地名ならなんでも全肯定
+                }
+            } 
+            else if (currentTargetKeyword === 'yes') {
+                if (cleanedResult.includes('yes') || cleanedResult.includes('yeah') || cleanedResult.includes('ok') || cleanedResult.includes('is') || cleanedResult.includes('イエス') || cleanedResult.includes('いえす')) {
+                    executeSuccess();
+                } else { alertRetry(); }
+            }
+        };
+
+        recognitionInstance.onerror = function(e) {
+            console.log("マイク稼働中エラー(自動復旧対応):", e.error);
+            // 音声認識が切れたら自動で再起動をかける
+            if (e.error === 'not-allowed') {
+                alert("マイクの仕様が許可されていません。ブラウザのアドレスバーにあるマイクアイコンを許可してください！");
+            }
+        };
+
+        recognitionInstance.onend = function() {
+            // ゲーム進行中は常にマイクを自動で再起動し続ける
+            if (isListening) {
+                try { recognitionInstance.start(); } catch(e){}
+            }
+        };
+    }
+
+    // 成功処理の安全な実行
+    function executeSuccess() {
+        currentActiveCallback();
+        currentActiveCallback = null; // 重複実行防止
+        currentTargetKeyword = "";
+    }
+
+    function alertRetry() {
+        alert("ピコ：「おしい！もう一度、大きな声で言ってみよう！」");
+    }
+
+    // シーンごとの音声認識ターゲットの切り替え（ディレイ演出に干渉されない最速登録）
+    function setVoiceTarget(targetKeyword, successCallback) {
+        currentTargetKeyword = targetKeyword;
+        currentActiveCallback = successCallback;
+        
+        // 認識言語の最適化
+        if(recognitionInstance) {
+            recognitionInstance.lang = (targetKeyword === 'any_name') ? 'ja-JP' : 'en-US';
+        }
+
+        if (!isListening) {
+            try {
+                recognitionInstance.start();
+                isListening = true;
+            } catch(e){}
+        }
+    }
+
+    // 子供が手動でマイクボタンを押した時のお助けトリガー
+    function startListeningSequence(targetKeyword, successCallback) {
+        setVoiceTarget(targetKeyword, successCallback);
+        console.log("手動マイクプッシュ連動：", targetKeyword);
+    }
 
     function playBGM(id) {
         const bgm = document.getElementById(id);
-        if(bgm) { bgm.volume = 0.4; bgm.play().catch(e => console.log("BGM play deferred")); }
+        if(bgm) { bgm.volume = 0.4; bgm.play().catch(e => console.log("BGM play wait")); }
     }
     function stopBGM(id) {
         const bgm = document.getElementById(id);
@@ -303,7 +403,7 @@
     }
     function playVoice(id) {
         const voice = document.getElementById(id);
-        if(voice) { voice.volume = 0.9; voice.play().catch(e => console.log("Voice simulated")); }
+        if(voice) { voice.volume = 0.9; voice.play().catch(e => console.log("Voice bypass")); }
     }
 
     function changeScene(currentId, nextId, bgClass) {
@@ -313,7 +413,7 @@
     }
 
     // Delayed Translation（2秒の脳の格闘時間演出システム）
-    function triggerDelayedTranslation(enElementId, jaElementId, hintElementId, enText, jaText, hintText, micId) {
+    function triggerDelayedTranslation(enElementId, jaElementId, hintElementId, enText, jaText, hintText, micId, targetKeyword, successCallback) {
         const enEl = document.getElementById(enElementId);
         const jaEl = document.getElementById(jaElementId);
         const hintEl = document.getElementById(hintElementId);
@@ -326,7 +426,10 @@
         micBtn.style.display = 'none';
         micBtn.classList.remove('pulse');
 
-        // 2秒の沈黙後に日本語訳とマイクを同期点滅させて開放
+        // ★神修正：日本語が出る前の「2秒の間」であっても、裏では既に認識をスタートさせておく！
+        setVoiceTarget(targetKeyword, successCallback);
+
+        // 2秒の沈黙の後に日本語サポートと巨大マイクを同期出現
         setTimeout(() => {
             jaEl.style.opacity = 1;
             hintEl.innerText = hintText;
@@ -335,66 +438,20 @@
         }, 2000);
     }
 
-    // 音声認識大掃除システム（表記ゆれ吸収）
-    function cleanSpeechText(text) {
-        return text.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_~()]/g,"").trim();
-    }
-
-    // 音声認識メインエンジン
-    function startSpeechRecognition(targetKeyword, successCallback) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert("このブラウザは音声認識に対応していません。Google Chromeをお使いください。");
-            return;
-        }
-
-        const recognition = new SpeechRecognition();
-        // 名前登録時のみ日本語を許可、それ以外は英語ベース
-        recognition.lang = (targetKeyword === 'any_name') ? 'ja-JP' : 'en-US';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        recognition.start();
-        console.log("音声認識スタート：ターゲット =", targetKeyword);
-
-        recognition.onresult = function(event) {
-            const rawResult = event.results[0][0].transcript;
-            const cleanedResult = cleanSpeechText(rawResult);
-            console.log("取得音声:", rawResult, "大掃除後:", cleanedResult);
-
-            if (targetKeyword === 'open' && cleanedResult.includes('open')) {
-                successCallback();
-            } else if (targetKeyword === 'any_name' && rawResult.trim() !== "") {
-                masterName = rawResult.trim(); // 叫んだ名前をその場で上書き記憶！
-                successCallback();
-            } else if (targetKeyword === 'location_catch' && cleanedResult.length > 0) {
-                successCallback(); // 地名ならなんでも意図汲み取り全肯定
-            } else if (targetKeyword === 'yes' && (cleanedResult.includes('yes') || cleanedResult.includes('yeah') || cleanedResult.includes('ok') || cleanedResult.includes('is'))) {
-                successCallback();
-            } else {
-                alert("ピコ：「おしい！もう一度、大きな声で言ってみよう！」");
-            }
-        };
-
-        recognition.onerror = function(e) {
-            console.error("音声認識エラー", e);
-            alert("ピコ：「声がうまく届かなかったみたい！もう一回マイクを押して教えてね！」");
-        };
-    }
-
-    // ================= ゲーム進行ロジック =================
+    // ================= ゲームロジック進行 =================
 
     function startGame() {
         const nameInput = document.getElementById('player-name').value;
         if(nameInput.trim() !== "") {
             masterName = nameInput;
         }
+        initSpeechEngine(); // ボタンクリックの瞬間にマイク全権限を解放
         playBGM('bgm-opening');
         changeScene('scene-login', 'scene-bedroom', 'bg-room');
         initScene2();
     }
 
-    // シーン2：朝の目覚め
+    // シーン2：朝の目覚め（絶対に止まらないオープンミッション）
     function initScene2() {
         playVoice('voice-s2');
         triggerDelayedTranslation(
@@ -402,26 +459,31 @@
             `"Listen, ${masterName}. The dark is coming. Look at the window. Open it! Look at the forest. Your big journey begins!"`,
             `「聞け、${masterName}。闇が迫っている。窓を見ろ。それを開けるんだ！森を見ろ。君の偉大なる旅が、今始まる！」`,
             `💡ピコヒント：「オープン！」って叫んで、窓から外に飛び出そう！`,
-            'mic-s2'
+            'mic-s2',
+            'open',
+            handleScene2Success
         );
     }
 
     function handleScene2Success() {
         playSE('se-success');
         container.classList.add('success-flash');
-        setTimeout(() => container.classList.remove('success-flash'), 500);
-        
-        // シーン3：都会から森へのグラデーションシームレス移動
-        document.getElementById('scene-bedroom').classList.remove('active');
-        container.className = 'bg-forest-entrance';
+        document.getElementById('mic-s2').style.display = 'none';
         
         setTimeout(() => {
-            container.className = 'bg-forest';
-            initScene4(); // 確実にシーン4へ移行
-        }, 2000);
+            container.classList.remove('success-flash');
+            // シーン3：都会から森へのシームレス移動
+            document.getElementById('scene-bedroom').classList.remove('active');
+            container.className = 'bg-forest-entrance';
+            
+            setTimeout(() => {
+                container.className = 'bg-forest';
+                initScene4(); // 確実にピコ遭遇シーンへ
+            }, 2000);
+        }, 500);
     }
 
-    // シーン4：ピコとの邂逅 ＆ 名前登録（★詰まりポイント修正完了）
+    // シーン4：ピコとの邂逅 ＆ 名前登録
     function initScene4() {
         stopBGM('bgm-opening');
         playBGM('bgm-adventure');
@@ -431,24 +493,22 @@
         triggerDelayedTranslation(
             's4-en', 's4-ja', 's4-hint',
             `"What's your name?"`,
-            `ピコ：「わあ！待ってたよ！ボクの名前はピコ（PIKO）！目覚めたばかりの万能通信・翻訳ロボなんだ！ボクに、なんて呼ばれたい？」`,
-            `💡ピコヒント：マイクボタンを押してから、君の【ハンドルネーム】をカッコよく叫んでみて！`,
-            'mic-s4'
+            `ピコ：「わあ！待ってたよ！ボクの名前はピコ（PIKO）！目覚めたばかりの万能通信・翻訳ロボなんだ！マスター、これからよろしくね！」`,
+            `💡ピコヒント：マイクに向かって、君の【ハンドルネーム】をカッコよく叫んでみて！`,
+            'mic-s4',
+            'any_name',
+            handleScene4Success
         );
     }
 
-    // 名前をマイクに叫んだ後の大成功処理
     function handleScene4Success() {
         playSE('se-success');
         document.getElementById('mic-s4').style.display = 'none';
-        document.getElementById('mic-s4').classList.remove('pulse');
         
-        // ピコの爆発的全肯定セリフを画面に表示
         document.getElementById('s4-en').innerText = `Amazing!`;
         document.getElementById('s4-ja').innerText = `ピコ：「ワオ！ 【${masterName}】 っていうんだね！すごーーく良い名前だ！よーし、これから最高の相棒（マスター）としてよろしくね、${masterName}！」`;
-        document.getElementById('s4-hint').innerText = "（……地鳴りのような音が響き渡る……！）";
+        document.getElementById('s4-hint').innerText = "（……ズズズ……地鳴りのような音が響き渡る……！）";
 
-        // ピコが喜び、地鳴りが鳴るまでの余韻（3.5秒）を挟んで自動でシーン5へ！
         setTimeout(() => {
             initScene5();
         }, 3500);
@@ -459,25 +519,26 @@
         changeScene('scene-piko', 'scene-kong', 'bg-forest');
         playSE('se-roar');
 
-        // ピコがロシア人兵士に変身する演出をアバター（エモジ）で表現
-        document.getElementById('piko-avatar'); 
-        document.getElementById('kong-avatar').innerText = "🦍💢💥";
-
         playVoice('voice-s5');
         triggerDelayedTranslation(
             's5-en', 's5-ja', 's5-hint',
             `"WHERE ARE YOU FROM!?"`,
-            `ピコ（ロシア人兵士に変身）：「うわわっ、マスター危ない！ボクの後ろに隠れて！……って、あれ？ 怒って攻撃してきているんじゃなくて、『住んでいる場所や国』を質問しているみたいだよ！ビビらずに、国や街の名前をマイクにぶつけてやるんだ！」`,
-            `💡ピコヒント："Japan!"（ジャパン！）とか、君が住んでいる場所を大声で叫ぼう！`,
-            'mic-s5'
+            `ピコ（ロシア人兵士に変身）：「うわわっ、マスター危ない！ボクの後ろに隠れて！……って、あれ？ 怒って攻撃してきているんじゃなくて、『住んでいる場所や国』を質問しているみたいだよ！」`,
+            `💡ピコヒント："Japan!"（ジャパン！）とか、君が住んでいる国や街の名前を大声でぶつけてやろう！`,
+            'mic-s5',
+            'location_catch',
+            handleScene5Success
         );
     }
 
     function handleScene5Success() {
         playSE('se-success');
         container.classList.add('success-flash');
-        setTimeout(() => container.classList.remove('success-flash'), 500);
-        initScene6();
+        document.getElementById('mic-s5').style.display = 'none';
+        setTimeout(() => {
+            container.classList.remove('success-flash');
+            initScene6();
+        }, 500);
     }
 
     // シーン6：コング大号泣 ＆ 運命の「Yes!」
@@ -488,12 +549,14 @@
         triggerDelayedTranslation(
             's6-en', 's6-ja', 's6-hint',
             `"My body is so big. But I am very shy. I want friends. But I say something, people go away... why?"`,
-            `「『僕の体はこんなに大きいけれど、本当はとってもシャイなんだ。友達が欲しいだけなのに、僕が声を出すとみんな怖がって逃げてしまう……なぜなんだろう？』って言ってるよ……コング、寂しくて泣いてたんだね……」`,
+            `「『僕の体はこんなに大きいけれど、本当はとってもシャイんだ。友達が欲しいだけなのに、僕が声を出すとみんな怖がって逃げてしまう……なぜなんだろう？』って言ってるよ……コング、寂しくて泣いてたんだね……」`,
             `（コングが涙を拭きながら、じっとこちらを見つめている……）`,
-            'mic-s6'
+            'mic-s6',
+            'wait_phase', // 一旦待機
+            function(){} 
         );
 
-        // コングのシャイな告白を聞いた後、5.5秒後に自動で最終質問「Friend!?」へ移行
+        // コングの寂しい告白が終わった後、自動で最終「Friend!?」の質問に切り替える
         setTimeout(() => {
             playVoice('voice-s6-2');
             triggerDelayedTranslation(
@@ -501,9 +564,11 @@
                 `"Friend...!? Are you my friend?"`,
                 `コング：「ともだち……！？ お前、俺の友達になってくれるのか……？」`,
                 `💡ピコヒント：最高の笑顔で「イエス！」ってマイクに叫んであげて！`,
-                'mic-s6'
+                'mic-s6',
+                'yes',
+                handleScene6Success
             );
-        }, 5500);
+        }, 6000);
     }
 
     function handleScene6Success() {
@@ -513,6 +578,8 @@
         document.getElementById('s6-ja').innerHTML = `<strong>ピコ：「やったね${masterName}！！最高の友達ができたよ！マスターが恐れずにぶつけた『Japan!』や『Yes!』っていうたった一言の英語が、コングの心を救って世界を変えたんだよ！本当に天才！」</strong><br><br>さあ、コングと一緒に、失われた言葉を取り戻す『Eigo DE Quest』の壮大な旅へ、出発だーーー！`;
         document.getElementById('s6-hint').innerText = "🎉 第1章：コングの森 クリア！ 【第2章 オオカミ男ジェン編】へつづく…";
         document.getElementById('mic-s6').style.display = 'none';
+        isListening = false;
+        if(recognitionInstance) recognitionInstance.stop();
     }
 </script>
 
