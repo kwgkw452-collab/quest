@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eigo DE Quest - 第1章：コングの森</title>
+    <title>Eigo DE Quest - 第1章：コングの森（修正版）</title>
     <style>
-        /* 全体スタイリング：映画的でゲームらしい世界観 */
         body, html {
             margin: 0;
             padding: 0;
@@ -31,12 +30,10 @@
             transition: background-image 2s ease-in-out;
         }
 
-        /* 背景レイヤー（グラデーション移動用） */
         .bg-room { background-image: radial-gradient(circle, #2c3e50, #000000); }
         .bg-forest-entrance { background-image: linear-gradient(to bottom, #114357, #f29492); }
         .bg-forest { background-image: linear-gradient(to bottom, #134e5e, #c9c64d); }
 
-        /* シーン共通管理 */
         .scene {
             display: none;
             width: 100%;
@@ -75,7 +72,6 @@
             100% { transform: rotateX(20deg) translateY(-150%); opacity: 0; }
         }
 
-        /* ログイン画面入力エリア */
         .login-box {
             background: rgba(0, 0, 0, 0.85);
             border: 3px solid #00e5ff;
@@ -116,7 +112,7 @@
             box-shadow: 0 5px 25px rgba(0,229,255,0.8);
         }
 
-        /* メッセージ＆セリフ表示エリア */
+        /* メッセージ表示エリア */
         .dialogue-area {
             position: absolute;
             bottom: 40px;
@@ -127,51 +123,50 @@
             border-radius: 15px;
             padding: 25px;
             box-sizing: border-box;
-            min-height: 160px;
+            min-height: 180px;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
 
         .english-text {
-            font-size: 28px;
+            font-size: 26px;
             color: #00ffff;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             text-shadow: 0 0 10px rgba(0,255,255,0.5);
         }
 
         .japanese-text {
-            font-size: 20px;
+            font-size: 19px;
             color: #ffffff;
-            line-height: 1.5;
+            line-height: 1.6;
             transition: opacity 0.5s ease-in-out;
         }
 
         .system-hint {
-            font-size: 18px;
+            font-size: 17px;
             color: #ffeb3b;
             margin-top: 10px;
             font-weight: bold;
         }
 
-        /* 巨大マイクボタン演出 */
         .mic-container {
-            margin-top: 20px;
-            height: 100px;
+            margin-top: 15px;
+            height: 90px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         .mic-button {
-            width: 80px;
-            height: 80px;
+            width: 75px;
+            height: 75px;
             border-radius: 50%;
             background: linear-gradient(45deg, #ff0055, #ff5500);
             border: none;
             color: white;
-            font-size: 36px;
+            font-size: 32px;
             cursor: pointer;
             display: none;
             align-items: center;
@@ -189,7 +184,6 @@
             100% { transform: scale(1.15); box-shadow: 0 0 35px #ff0055, 0 0 15px #ff5500; }
         }
 
-        /* グラフィック・キャラクター表示 */
         .stage-visual {
             font-size: 100px;
             margin-bottom: 30px;
@@ -201,12 +195,11 @@
             50% { transform: translateY(-15px); }
         }
 
-        /* 特殊演出用 */
         .success-flash {
             animation: flash-green 0.5s ease-out;
         }
         @keyframes flash-green {
-            0% { background-color: rgba(0, 255, 100, 0.6); }
+            0% { background-color: rgba(0, 255, 100, 0.4); }
             100% { background-color: transparent; }
         }
     </style>
@@ -215,7 +208,7 @@
 
 <div id="game-container">
 
-    <!-- ================= SCENE 1: OPENING & LOGIN ================= -->
+    <!-- ================= SCENE 1 ================= -->
     <div id="scene-login" class="scene active">
         <div class="star-wars-intro" id="intro-text">
             遥か彼方、言葉を失った世界…<br><br>
@@ -226,14 +219,14 @@
             今、一人の勇者が立ち上がる！<br>
             失われた絆を取り戻すために！
         </div>
-        <div class="login-box" style="margin-top: auto; margin-bottom: 10% ;">
-            <h2 style="color: #00e5ff; font-size: 22px; margin-top:0;">このぼうけんで よばれたい<br>なまえ（ハンドルネーム）をおしえてね！</h2>
+        <div class="login-box" style="margin-top: auto; margin-bottom: 8%;">
+            <h2 style="color: #00e5ff; font-size: 20px; margin-top:0; line-height: 1.5;">このぼうけんで よばれたい<br>なまえ（ハンドルネーム）をおしえてね！</h2>
             <input type="text" id="player-name" placeholder="ここに名前を入力してね" maxlength="12"><br>
             <button class="btn-prime" onclick="startGame()">冒険をはじめる！</button>
         </div>
     </div>
 
-    <!-- ================= SCENE 2: BEDROOM (OPEN MISSION) ================= -->
+    <!-- ================= SCENE 2 ================= -->
     <div id="scene-bedroom" class="scene">
         <div class="stage-visual">🛏️✨🚪</div>
         <div class="dialogue-area">
@@ -244,7 +237,7 @@
         </div>
     </div>
 
-    <!-- ================= SCENE 4: MEETING PIKO ================= -->
+    <!-- ================= SCENE 4 ================= -->
     <div id="scene-piko" class="scene">
         <div id="piko-avatar" class="stage-visual">🤖✨</div>
         <div class="dialogue-area">
@@ -255,7 +248,7 @@
         </div>
     </div>
 
-    <!-- ================= SCENE 5: KONG ENCOUNTER ================= -->
+    <!-- ================= SCENE 5 ================= -->
     <div id="scene-kong" class="scene">
         <div id="kong-avatar" class="stage-visual">🦍💢💥</div>
         <div class="dialogue-area">
@@ -266,7 +259,7 @@
         </div>
     </div>
 
-    <!-- ================= SCENE 6: KONG CRY & YES ================= -->
+    <!-- ================= SCENE 6 ================= -->
     <div id="scene-yes" class="scene">
         <div id="kong-cry-avatar" class="stage-visual">🦍😭💖</div>
         <div class="dialogue-area">
@@ -279,13 +272,13 @@
 
 </div>
 
-<!-- オーディオ要素（アセットパスはアセット配置用に見やすくプレースホルダー化） -->
-<audio id="bgm-opening" loop src="https://actions.google.com/sounds/v1/ambiences/morning_birds.ogg"></audio> <!-- 壮大BGM代替 -->
+<!-- オーディオ（BGM・SEアセット） -->
+<audio id="bgm-opening" loop src="https://actions.google.com/sounds/v1/ambiences/morning_birds.ogg"></audio>
 <audio id="bgm-adventure" loop src="https://actions.google.com/sounds/v1/ambiences/field_recording.ogg"></audio>
 <audio id="se-success" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_up.ogg"></audio>
 <audio id="se-roar" src="https://actions.google.com/sounds/v1/animals/lion_growl.ogg"></audio>
 
-<!-- ハリウッドボイス用（フォルダ設計に合わせて本番時に書き換え） -->
+<!-- ハリウッドボイス用（パス指定用プレースホルダー） -->
 <audio id="voice-s2" src="path_to_drive/s2_listen_master.mp3"></audio>
 <audio id="voice-s4" src="path_to_drive/s4_whats_your_name.mp3"></audio>
 <audio id="voice-s5" src="path_to_drive/s5_where_are_you_from.mp3"></audio>
@@ -293,14 +286,12 @@
 <audio id="voice-s6-2" src="path_to_drive/s6_friend.mp3"></audio>
 
 <script>
-    // グローバルゲーム状態
     let masterName = "マスター";
     const container = document.getElementById('game-container');
 
-    // サウンド再生ヘルパー
     function playBGM(id) {
         const bgm = document.getElementById(id);
-        if(bgm) { bgm.volume = 0.4; bgm.play().catch(e => console.log("BGM Play blocked")); }
+        if(bgm) { bgm.volume = 0.4; bgm.play().catch(e => console.log("BGM play deferred")); }
     }
     function stopBGM(id) {
         const bgm = document.getElementById(id);
@@ -312,17 +303,16 @@
     }
     function playVoice(id) {
         const voice = document.getElementById(id);
-        if(voice) { voice.volume = 0.9; voice.play().catch(e => console.log("Voice file not found, simulated path")); }
+        if(voice) { voice.volume = 0.9; voice.play().catch(e => console.log("Voice simulated")); }
     }
 
-    // シーン切り替え
     function changeScene(currentId, nextId, bgClass) {
         document.getElementById(currentId).classList.remove('active');
         document.getElementById(nextId).classList.add('active');
         container.className = bgClass;
     }
 
-    // Delayed Translation（2秒ディレイ表示システム）
+    // Delayed Translation（2秒の脳の格闘時間演出システム）
     function triggerDelayedTranslation(enElementId, jaElementId, hintElementId, enText, jaText, hintText, micId) {
         const enEl = document.getElementById(enElementId);
         const jaEl = document.getElementById(jaElementId);
@@ -333,17 +323,19 @@
         jaEl.style.opacity = 0;
         jaEl.innerText = jaText;
         hintEl.innerText = "";
+        micBtn.style.display = 'none';
         micBtn.classList.remove('pulse');
 
-        // 2秒の沈黙（脳の格闘時間）をあけて日本語訳と誘導を出す
+        // 2秒の沈黙後に日本語訳とマイクを同期点滅させて開放
         setTimeout(() => {
             jaEl.style.opacity = 1;
             hintEl.innerText = hintText;
-            micBtn.classList.add('pulse'); // 日本語サポート直後にマイク点滅
+            micBtn.style.display = 'flex';
+            micBtn.classList.add('pulse');
         }, 2000);
     }
 
-    // 音声認識大掃除システム（大文字小文字・記号の完全吸収）
+    // 音声認識大掃除システム（表記ゆれ吸収）
     function cleanSpeechText(text) {
         return text.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_~()]/g,"").trim();
     }
@@ -357,41 +349,41 @@
         }
 
         const recognition = new SpeechRecognition();
-        recognition.lang = 'en-US'; // 英語ベースで判定
-        if (targetKeyword === 'any_name') recognition.lang = 'ja-JP'; // 名前登録時のみ日本語も許容
+        // 名前登録時のみ日本語を許可、それ以外は英語ベース
+        recognition.lang = (targetKeyword === 'any_name') ? 'ja-JP' : 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
 
         recognition.start();
+        console.log("音声認識スタート：ターゲット =", targetKeyword);
 
         recognition.onresult = function(event) {
             const rawResult = event.results[0][0].transcript;
             const cleanedResult = cleanSpeechText(rawResult);
-            console.log("認識された生声:", rawResult, "大掃除後:", cleanedResult);
+            console.log("取得音声:", rawResult, "大掃除後:", cleanedResult);
 
-            // 全肯定・意図汲み取り判定
             if (targetKeyword === 'open' && cleanedResult.includes('open')) {
                 successCallback();
-            } else if (targetKeyword === 'any_name') {
-                masterName = rawResult; // 叫んだ名前をそのまま記憶！
+            } else if (targetKeyword === 'any_name' && rawResult.trim() !== "") {
+                masterName = rawResult.trim(); // 叫んだ名前をその場で上書き記憶！
                 successCallback();
             } else if (targetKeyword === 'location_catch' && cleanedResult.length > 0) {
-                // キーワード（地名）が入っていれば何でも大成功判定
-                successCallback();
-            } else if (targetKeyword === 'yes' && (cleanedResult.includes('yes') || cleanedResult.includes('yeah') || cleanedResult.includes('ok'))) {
+                successCallback(); // 地名ならなんでも意図汲み取り全肯定
+            } else if (targetKeyword === 'yes' && (cleanedResult.includes('yes') || cleanedResult.includes('yeah') || cleanedResult.includes('ok') || cleanedResult.includes('is'))) {
                 successCallback();
             } else {
-                // ゲームオーバー廃止：ピコが優しくリトライを促す
                 alert("ピコ：「おしい！もう一度、大きな声で言ってみよう！」");
             }
         };
 
-        recognition.onerror = function() {
-            alert("ピコ：「声がうまく届かなかったみたい！もう一回マイクを押して教えて！」");
+        recognition.onerror = function(e) {
+            console.error("音声認識エラー", e);
+            alert("ピコ：「声がうまく届かなかったみたい！もう一回マイクを押して教えてね！」");
         };
     }
 
-    // ================= ゲームロジック進行 =================
+    // ================= ゲーム進行ロジック =================
 
-    // シーン1：ログインからスタート
     function startGame() {
         const nameInput = document.getElementById('player-name').value;
         if(nameInput.trim() !== "") {
@@ -419,17 +411,17 @@
         container.classList.add('success-flash');
         setTimeout(() => container.classList.remove('success-flash'), 500);
         
-        // シーン3：都会から森へのシームレス移動（背景グラデーションを変化させる演出）
+        // シーン3：都会から森へのグラデーションシームレス移動
         document.getElementById('scene-bedroom').classList.remove('active');
         container.className = 'bg-forest-entrance';
         
         setTimeout(() => {
             container.className = 'bg-forest';
-            initScene4(); // シーン4へ
+            initScene4(); // 確実にシーン4へ移行
         }, 2000);
     }
 
-    // シーン4：ピコとの出会い
+    // シーン4：ピコとの邂逅 ＆ 名前登録（★詰まりポイント修正完了）
     function initScene4() {
         stopBGM('bgm-opening');
         playBGM('bgm-adventure');
@@ -439,22 +431,27 @@
         triggerDelayedTranslation(
             's4-en', 's4-ja', 's4-hint',
             `"What's your name?"`,
-            `ピコ：「わあ！待ってたよ！ボクの名前はピコ！目覚めたばかりの万能ロボなんだ！ボクに、なんて呼ばれたい？」`,
-            `💡ピコヒント：マイクに向かって、君の【ハンドルネーム】をカッコよく叫んでみて！`,
+            `ピコ：「わあ！待ってたよ！ボクの名前はピコ（PIKO）！目覚めたばかりの万能通信・翻訳ロボなんだ！ボクに、なんて呼ばれたい？」`,
+            `💡ピコヒント：マイクボタンを押してから、君の【ハンドルネーム】をカッコよく叫んでみて！`,
             'mic-s4'
         );
     }
 
+    // 名前をマイクに叫んだ後の大成功処理
     function handleScene4Success() {
         playSE('se-success');
-        document.getElementById('s4-en').innerText = `Amazing!`;
-        document.getElementById('s4-ja').innerText = `ピコ：「ワオ！ ${masterName} っていうんだね！すごーーく良い名前だ！よーし、これから最高の相棒としてよろしくね、${masterName}！」`;
-        document.getElementById('s4-hint').innerText = "";
+        document.getElementById('mic-s4').style.display = 'none';
         document.getElementById('mic-s4').classList.remove('pulse');
+        
+        // ピコの爆発的全肯定セリフを画面に表示
+        document.getElementById('s4-en').innerText = `Amazing!`;
+        document.getElementById('s4-ja').innerText = `ピコ：「ワオ！ 【${masterName}】 っていうんだね！すごーーく良い名前だ！よーし、これから最高の相棒（マスター）としてよろしくね、${masterName}！」`;
+        document.getElementById('s4-hint').innerText = "（……地鳴りのような音が響き渡る……！）";
 
+        // ピコが喜び、地鳴りが鳴るまでの余韻（3.5秒）を挟んで自動でシーン5へ！
         setTimeout(() => {
             initScene5();
-        }, 4000);
+        }, 3500);
     }
 
     // シーン5：コング遭遇
@@ -462,55 +459,59 @@
         changeScene('scene-piko', 'scene-kong', 'bg-forest');
         playSE('se-roar');
 
+        // ピコがロシア人兵士に変身する演出をアバター（エモジ）で表現
+        document.getElementById('piko-avatar'); 
+        document.getElementById('kong-avatar').innerText = "🦍💢💥";
+
         playVoice('voice-s5');
         triggerDelayedTranslation(
             's5-en', 's5-ja', 's5-hint',
             `"WHERE ARE YOU FROM!?"`,
-            `ピコ（ロシア兵に大変身）：「うわわっ、マスター危ない！ボクの後ろに隠れて！……って、あれ？ 怒って攻撃してきているんじゃなくて、『住んでいる場所や国』を質問しているみたいだよ！」`,
-            `💡ピコヒント：「ジャパン！」とか、君が住んでいる街の名前をマイクにぶつけてやるんだ！`,
+            `ピコ（ロシア人兵士に変身）：「うわわっ、マスター危ない！ボクの後ろに隠れて！……って、あれ？ 怒って攻撃してきているんじゃなくて、『住んでいる場所や国』を質問しているみたいだよ！ビビらずに、国や街の名前をマイクにぶつけてやるんだ！」`,
+            `💡ピコヒント："Japan!"（ジャパン！）とか、君が住んでいる場所を大声で叫ぼう！`,
             'mic-s5'
         );
     }
 
     function handleScene5Success() {
         playSE('se-success');
+        container.classList.add('success-flash');
+        setTimeout(() => container.classList.remove('success-flash'), 500);
         initScene6();
     }
 
-    // シーン6：コング大号泣＆友情のYes
+    // シーン6：コング大号泣 ＆ 運命の「Yes!」
     function initScene6() {
         changeScene('scene-kong', 'scene-yes', 'bg-forest');
-        document.getElementById('piko-avatar');
         
         playVoice('voice-s6-1');
-        // コングのシャイな告白
         triggerDelayedTranslation(
             's6-en', 's6-ja', 's6-hint',
             `"My body is so big. But I am very shy. I want friends. But I say something, people go away... why?"`,
-            `「『僕の体はこんなに大きいけれど、本当はとってもシャイなんだ。友達が欲しいだけなのに、僕が声を出すとみんな怖がって逃げてしまう……なぜなんだろう？』って言ってるよ…コング、寂しかったんだね…」`,
-            `コングがじっとこちらを見つめている…`,
+            `「『僕の体はこんなに大きいけれど、本当はとってもシャイなんだ。友達が欲しいだけなのに、僕が声を出すとみんな怖がって逃げてしまう……なぜなんだろう？』って言ってるよ……コング、寂しくて泣いてたんだね……」`,
+            `（コングが涙を拭きながら、じっとこちらを見つめている……）`,
             'mic-s6'
         );
 
-        // 5秒後に続けてコングの質問フェーズに移行
+        // コングのシャイな告白を聞いた後、5.5秒後に自動で最終質問「Friend!?」へ移行
         setTimeout(() => {
             playVoice('voice-s6-2');
             triggerDelayedTranslation(
                 's6-en', 's6-ja', 's6-hint',
                 `"Friend...!? Are you my friend?"`,
                 `コング：「ともだち……！？ お前、俺の友達になってくれるのか……？」`,
-                `💡ピコヒント：答えは決まってるよね！笑顔で「イエス！」ってマイクに叫ぼう！`,
+                `💡ピコヒント：最高の笑顔で「イエス！」ってマイクに叫んであげて！`,
                 'mic-s6'
             );
-        }, 7000);
+        }, 5500);
     }
 
     function handleScene6Success() {
         playSE('se-success');
         document.getElementById('s6-en').style.color = "#ffeb3b";
         document.getElementById('s6-en').innerText = "✨ QUEST CLEAR!! ✨";
-        document.getElementById('s6-ja').innerHTML = `<strong>ピコ：「やったね${masterName}！！最高の友達ができたよ！<br>マスターが恐れずにぶつけた『Japan!』や『Yes!』っていうたった一言の英語が、コングの心を救って世界を変えたんだよ！本当に天才！」</strong><br><br>さあ、コングと一緒に、失われた言葉を取り戻す『Eigo DE Quest』の壮大な旅へ、出発だーーー！`;
-        document.getElementById('s6-hint').innerText = "🎉 第1章：コングの森 クリア！ 第2章『オオカミ男ジェン』へつづく…";
+        document.getElementById('s6-ja').innerHTML = `<strong>ピコ：「やったね${masterName}！！最高の友達ができたよ！マスターが恐れずにぶつけた『Japan!』や『Yes!』っていうたった一言の英語が、コングの心を救って世界を変えたんだよ！本当に天才！」</strong><br><br>さあ、コングと一緒に、失われた言葉を取り戻す『Eigo DE Quest』の壮大な旅へ、出発だーーー！`;
+        document.getElementById('s6-hint').innerText = "🎉 第1章：コングの森 クリア！ 【第2章 オオカミ男ジェン編】へつづく…";
         document.getElementById('mic-s6').style.display = 'none';
     }
 </script>
