@@ -1,592 +1,163 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eigo DE Quest - 第1章：コングの森（絶対突破版）</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #000;
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            color: #fff;
-            user-select: none;
-        }
-
-        #game-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            background-size: cover;
-            background-position: center;
-            transition: background-image 2s ease-in-out;
-        }
-
-        /* 3段階グラデーション背景（都會➔郊外➔田舎➔不思議な森） */
-        .bg-room { background-image: radial-gradient(circle, #2c3e50, #000000); }
-        .bg-suburb { background-image: linear-gradient(to bottom, #1f4037, #99f2c8); }
-        .bg-country { background-image: linear-gradient(to bottom, #4ca1af, #c4e0e5); }
-        .bg-forest { background-image: linear-gradient(to bottom, #134e5e, #71b280); }
-
-        .scene {
-            display: none;
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
-        .scene.active {
-            display: flex;
-        }
-
-        /* スター・ウォーズ風文字スクロール */
-        .star-wars-intro {
-            position: absolute;
-            width: 70%;
-            bottom: 0;
-            transform-origin: 50% 100%;
-            animation: crawl 25s linear forwards;
-            color: #f5a623;
-            font-weight: bold;
-            font-size: 24px;
-            line-height: 1.8;
-            text-align: justify;
-            opacity: 0;
-        }
-
-        @keyframes crawl {
-            0% { transform: rotateX(20deg) translateY(100%); opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: rotateX(20deg) translateY(-150%); opacity: 0; }
-        }
-
-        .login-box {
-            background: rgba(0, 0, 0, 0.85);
-            border: 3px solid #00e5ff;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 0 30px #00e5ff;
-            z-index: 10;
-        }
-
-        input[type="text"] {
-            font-size: 24px;
-            padding: 12px 20px;
-            border-radius: 10px;
-            border: 2px solid #00e5ff;
-            background: #111;
-            color: #fff;
-            text-align: center;
-            outline: none;
-            margin-bottom: 20px;
-            width: 280px;
-        }
-
-        .btn-prime {
-            font-size: 24px;
-            padding: 12px 35px;
-            border-radius: 10px;
-            border: none;
-            background: linear-gradient(45deg, #00e5ff, #0044ff);
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,229,255,0.4);
-            transition: 0.2s;
-        }
-
-        .btn-prime:hover { transform: scale(1.05); box-shadow: 0 5px 25px rgba(0,229,255,0.8); }
-
-        /* グラフィック表示エリア */
-        .graphic-area {
-            height: 40%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .game-img {
-            max-height: 280px;
-            object-fit: contain;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-
-        /* 映画風テキストボックス */
-        .dialogue-area {
-            position: absolute;
-            bottom: 40px;
-            width: 85%;
-            max-width: 900px;
-            background: rgba(10, 20, 30, 0.95);
-            border: 2px solid #00e5ff;
-            border-radius: 15px;
-            padding: 25px;
-            box-sizing: border-box;
-            min-height: 180px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        }
-
-        .english-text {
-            font-size: 26px;
-            color: #00ffff;
-            font-weight: bold;
-            margin-bottom: 12px;
-            text-shadow: 0 0 10px rgba(0,255,255,0.5);
-        }
-
-        .japanese-text {
-            font-size: 19px;
-            color: #ffffff;
-            line-height: 1.6;
-            transition: opacity 0.5s ease-in-out;
-        }
-
-        .system-hint {
-            font-size: 17px;
-            color: #ffeb3b;
-            margin-top: 10px;
-            font-weight: bold;
-        }
-
-        .mic-container {
-            margin-top: 15px;
-            height: 90px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .mic-button {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #ff0055, #ff5500);
-            border: none;
-            color: white;
-            font-size: 36px;
-            cursor: pointer;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 25px #ff0055;
-        }
-
-        .mic-button.pulse {
-            display: flex;
-            animation: mic-glow 1.2s infinite alternate;
-        }
-
-        @keyframes mic-glow {
-            0% { transform: scale(1); box-shadow: 0 0 15px #ff0055; }
-            100% { transform: scale(1.15); box-shadow: 0 0 35px #ff0055, 0 0 15px #ff5500; }
-        }
-
-        .success-flash { animation: flash-green 0.5s ease-out; }
-        @keyframes flash-green {
-            0% { background-color: rgba(0, 255, 100, 0.5); }
-            100% { background-color: transparent; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eigo DE Quest - Episode 1</title>
+<style>
+    body { background-color: #000; color: #fff; font-family: 'Courier New', serif; text-align: center; margin: 0; padding: 0; }
+    #game-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+    .screen { display: none; padding: 20px; border: 2px solid #fff; border-radius: 10px; min-height: 400px; position: relative; }
+    .active { display: block; }
+    h1 { color: #ffd700; font-size: 2em; text-shadow: 2px 2px 5px #ff8c00; }
+    p { font-size: 1.2em; line-height: 1.6; }
+    .btn { background-color: #333; color: #ffd700; border: 2px solid #ffd700; padding: 15px 30px; font-size: 1.2em; cursor: pointer; border-radius: 5px; margin-top: 20px; transition: 0.3s; }
+    .btn:hover { background-color: #ffd700; color: #000; }
+    .mic-btn { font-size: 3em; background: none; border: none; cursor: pointer; margin: 20px 0; }
+    .status-msg { color: #00ff00; font-weight: bold; margin-top: 10px; height: 1.5em;}
+    .piko-support { color: #00ffff; font-style: italic; margin-top: 15px; }
+</style>
 </head>
-<body class="bg-room">
+<body>
 
 <div id="game-container">
-
-    <!-- シーン1: タイトル・ログイン -->
-    <div id="scene-login" class="scene active">
-        <div class="star-wars-intro" id="intro-text">
-            遥か彼方、言葉を失った世界…<br><br>
-            かつて人々は「英語」という魔法で<br>
-            世界中の仲間と繋がっていた。<br><br>
-            しかし、大いなる闇が言葉を封印し、<br>
-            世界は静寂に包まれた…。<br><br>
-            今、一人の勇者が立ち上がる！<br>
-            失われた絆を取り戻すために！
-        </div>
-        <div class="login-box" style="margin-top: auto; margin-bottom: 8%;">
-            <h2 style="color: #00e5ff; font-size: 20px; margin-top:0; line-height: 1.5;">このぼうけんで よばれたい<br>なまえ（ハンドルネーム）をおしえてね！</h2>
-            <input type="text" id="player-name" placeholder="ここに名前を入力してね" value="マスター" maxlength="12"><br>
-            <button class="btn-prime" onclick="startGame()">冒険をはじめる！</button>
-        </div>
+    <!-- スタート画面 -->
+    <div id="screen-start" class="screen active">
+        <h1>Eigo DE Quest</h1>
+        <p>〜失われた言葉を取り戻せ〜</p>
+        <button class="btn" onclick="startGame()">冒険を始める（マイクをオンにする）</button>
     </div>
 
-    <!-- シーン2: 朝の目覚め (Open!) -->
-    <div id="scene-bedroom" class="scene">
-        <div class="graphic-area"><img src="images/ch1_room.png" class="game-img" alt="Room"></div>
-        <div class="dialogue-area">
-            <div class="english-text" id="s2-en"></div>
-            <div class="japanese-text" id="s2-ja" style="opacity:0;"></div>
-            <div class="system-hint" id="s2-hint"></div>
-            <div class="mic-container"><button class="mic-button" id="mic-s2">🎤</button></div>
-        </div>
+    <!-- 毎朝のルーティン：How are you feeling? -->
+    <div id="screen-routine" class="screen">
+        <h2>Morning Routine</h2>
+        <p>ピコ: "Good morning! How are you feeling today?"</p>
+        <p class="piko-support">（マスター、今日の気分を英語で1単語で教えて！Happy? Sleepy?）</p>
+        <button class="mic-btn" onclick="startRoutineMic()">🎤</button>
+        <div id="routine-status" class="status-msg"></div>
+        <button id="btn-next-routine" class="btn" style="display:none;" onclick="showScene('screen-wake')">冒険へ出発する！</button>
     </div>
 
-    <!-- シーン4: ピコ起動 (Hello! & 名前登録) -->
-    <div id="scene-piko" class="scene">
-        <div class="graphic-area"><img src="images/ch1_piko.png" class="game-img" alt="Piko"></div>
-        <div class="dialogue-area">
-            <div class="english-text" id="s4-en"></div>
-            <div class="japanese-text" id="s4-ja" style="opacity:0;"></div>
-            <div class="system-hint" id="s4-hint"></div>
-            <div class="mic-container"><button class="mic-button" id="mic-s4">🎤</button></div>
-        </div>
+    <!-- 森での目覚めとピコ起動 -->
+    <div id="screen-wake" class="screen">
+        <h2>The Silent Forest</h2>
+        <p>深い森の広場で、シルバーベースの可愛いマスコットロボットが電池切れで眠っている……。</p>
+        <p>ピコを起動させるために、大きな声で挨拶しよう！</p>
+        <p class="piko-support">（画面に向かって 'Hello!' と叫ぼう！）</p>
+        <button class="mic-btn" onclick="startHelloMic()">🎤</button>
+        <div id="hello-status" class="status-msg"></div>
+        <button id="btn-next-hello" class="btn" style="display:none;" onclick="showScene('screen-kong')">奥へ進む</button>
     </div>
 
-    <!-- シーン5: コング遭遇 (Japan!) -->
-    <div id="scene-kong" class="scene">
-        <div class="graphic-area"><img id="img-kong" src="images/ch1_kong_angry.png" class="game-img" alt="Kong"></div>
-        <div class="dialogue-area">
-            <div class="english-text" id="s5-en"></div>
-            <div class="japanese-text" id="s5-ja" style="opacity:0;"></div>
-            <div class="system-hint" id="s5-hint"></div>
-            <div class="mic-container"><button class="mic-button" id="mic-s5">🎤</button></div>
-        </div>
+    <!-- コング遭遇とJapan1択 -->
+    <div id="screen-kong" class="screen">
+        <h2 style="color: #ff4500;">DANGER!!</h2>
+        <p>地鳴りとともに、岩の皮膚を持つ大怪獣「コング」が立ち塞がった！</p>
+        <p style="font-size: 1.5em; font-weight: bold;">コング: "WHERE ARE YOU FROM!?"</p>
+        <p class="piko-support">ピコ: 「マスター！ビビらずに 'Japan' って叫ぶんだ！」</p>
+        <button class="mic-btn" onclick="startJapanMic()">🎤</button>
+        <div id="japan-status" class="status-msg"></div>
+        <button id="btn-next-japan" class="btn" style="display:none;" onclick="showScene('screen-name')">次へ</button>
     </div>
 
-    <!-- シーン6: 運命のYes! -->
-    <div id="scene-yes" class="scene">
-        <div class="graphic-area"><img id="img-kong-cry" src="images/ch1_kong_cry.png" class="game-img" alt="Kong Cry"></div>
-        <div class="dialogue-area">
-            <div class="english-text" id="s6-en"></div>
-            <div class="japanese-text" id="s6-ja" style="opacity:0;"></div>
-            <div class="system-hint" id="s6-hint"></div>
-            <div class="mic-container"><button class="mic-button" id="mic-s6">🎤</button></div>
-        </div>
+    <!-- コング大号泣と名前の儀式 -->
+    <div id="screen-name" class="screen">
+        <h2>A New Friend</h2>
+        <p>コング: 「俺の外見を見て逃げ出さずに答えてくれた……！」</p>
+        <p>（コングは滝のような涙を流して大号泣している）</p>
+        <p style="font-size: 1.5em; font-weight: bold;">コング: "What's your name?"</p>
+        <p class="piko-support">ピコ: 「マスター！自分の名前（ハンドルネーム）を大きな声で教えてあげて！」</p>
+        <button class="mic-btn" onclick="startNameMic()">🎤</button>
+        <div id="name-status" class="status-msg"></div>
+        <button id="btn-next-name" class="btn" style="display:none;" onclick="showScene('screen-yes')">次へ</button>
     </div>
 
+    <!-- 最後の試練：Yes! -->
+    <div id="screen-yes" class="screen">
+        <h2>Friendship</h2>
+        <p id="kong-call" style="font-size: 1.5em; font-weight: bold;"></p>
+        <p class="piko-support">ピコ: 「マスター！もちろん答えは 'Yes!' だよね！」</p>
+        <button class="mic-btn" onclick="startYesMic()">🎤</button>
+        <div id="yes-status" class="status-msg"></div>
+        <button id="btn-next-yes" class="btn" style="display:none;" onclick="alert('第1章クリア！仲間と共にセカンドハウスを目指そう！')">第1章クリア！</button>
+    </div>
 </div>
 
-<!-- サウンドアセット -->
-<audio id="bgm-opening" loop src="audio/bgm_opening.mp3"></audio>
-<audio id="bgm-adventure" loop src="audio/bgm_adventure.mp3"></audio>
-<audio id="se-success" src="audio/se_success.mp3"></audio>
-<audio id="se-roar" src="audio/se_roar.mp3"></audio>
-<audio id="voice-s2" src="audio/voice_s2.mp3"></audio>
-<audio id="voice-s4" src="audio/voice_s4.mp3"></audio>
-<audio id="voice-s5" src="audio/voice_s5.mp3"></audio>
-<audio id="voice-s6-1" src="audio/voice_s6_1.mp3"></audio>
-<audio id="voice-s6-2" src="audio/voice_s6_2.mp3"></audio>
-
 <script>
-    let masterName = "マスター";
-    const container = document.getElementById('game-container');
-    let recognition = null;
-    let isGameRunning = false;
-    
-    let currentTarget = "";
-    let currentCallback = null;
+    let playerName = "";
 
-    // 音声認識エンジンの【防弾・永久ゾンビ化】初期化
-    function initSpeechEngine() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert("このブラウザは音声認識に対応していません。Google Chrome等でお試しください。");
-            return;
-        }
-        
-        recognition = new SpeechRecognition();
-        recognition.continuous = true; 
-        recognition.interimResults = false;
-        recognition.lang = 'en-US';
-
-        // 常時声を監視し、該当キーワードを「全肯定」で拾い上げるメインコア
-        recognition.onresult = function(event) {
-            if (!currentCallback) return;
-
-            const lastIndex = event.results.length - 1;
-            const rawResult = event.results[lastIndex][0].transcript;
-            // 表記ゆれ大掃除コード
-            const cleaned = rawResult.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_~()]/g,"").trim();
-            console.log("認識された声:", rawResult, "掃除後:", cleaned);
-
-            // シーン2: Open!（超絶全肯定：日本語変換やオの音、オープン、大分、すべて通過！）
-            if (currentTarget === 'open') {
-                if (cleaned.includes('open') || cleaned.includes('op') || cleaned.includes('oh') || 
-                    rawResult.includes('オープン') || rawResult.includes('おーぷん') || rawResult.includes('大分') || rawResult.includes('開')) {
-                    executeSuccess();
-                }
-            }
-            // シーン4: Hello! (ピコ起動)
-            else if (currentTarget === 'hello') {
-                if (cleaned.includes('hello') || cleaned.includes('he') || rawResult.includes('ハロー') || rawResult.includes('はろー')) {
-                    executeSuccess();
-                }
-            }
-            // シーン4裏: ハンドルネーム音声登録（叫べば何でもOK）
-            else if (currentTarget === 'name_reg') {
-                if (rawResult.trim() !== "") {
-                    masterName = rawResult.trim();
-                    executeSuccess();
-                }
-            }
-            // シーン5: Japan! (地名なら何でも通過)
-            else if (currentTarget === 'japan') {
-                if (cleaned.length > 0 || rawResult.length > 0) {
-                    executeSuccess();
-                }
-            }
-            // シーン6: Yes!
-            else if (currentTarget === 'yes') {
-                if (cleaned.includes('yes') || cleaned.includes('ye') || cleaned.includes('ok') || 
-                    rawResult.includes('イエス') || rawResult.includes('いえす')) {
-                    executeSuccess();
-                }
-            }
-        };
-
-        recognition.onerror = function(e) {
-            console.log("認識エラー(自動復旧します):", e.error);
-        };
-
-        // 【最重要】マイクが切れた瞬間に0.1秒でゾンビのように再起動
-        recognition.onend = function() {
-            if (isGameRunning) {
-                try { recognition.start(); } catch(err) {}
-            }
-        };
-
-        // 最初のクリックの瞬間に強制的にリスニング状態にする
-        try { recognition.start(); } catch(e){}
+    // 画面切り替え関数
+    function showScene(sceneId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(sceneId).classList.add('active');
     }
 
-    function executeSuccess() {
-        const callback = currentCallback;
-        currentCallback = null; // 重複実行ロック
-        currentTarget = "";
-        if (callback) callback();
+    function startGame() {
+        // ここでオーディオの初期化などを行う
+        showScene('screen-routine');
     }
 
-    function playBGM(id) {
-        const audio = document.getElementById(id);
-        if(audio) { audio.volume = 0.3; audio.play().catch(() => {}); }
-    }
-    function stopBGM(id) {
-        const audio = document.getElementById(id);
-        if(audio) audio.pause();
-    }
-    function playSE(id) {
-        const audio = document.getElementById(id);
-        if(audio) { audio.volume = 0.5; audio.play().catch(() => {}); }
-    }
-    function playVoice(id) {
-        const audio = document.getElementById(id);
-        if(audio) { audio.volume = 0.8; audio.play().catch(() => {}); }
-    }
-
-    function changeScene(currentId, nextId, bgClass) {
-        document.getElementById(currentId).classList.remove('active');
-        document.getElementById(nextId).classList.add('active');
-        container.className = bgClass;
-    }
-
-    // Delayed Translation（2秒の格闘時間）システム
-    function triggerDelayedTranslation(enId, jaId, hintId, micId, enText, jaText, hintText, targetKey, callbackFunc) {
-        document.getElementById(enId).innerText = enText;
-        const jaEl = document.getElementById(jaId);
-        const hintEl = document.getElementById(hintId);
-        const micBtn = document.getElementById(micId);
-
-        jaEl.style.opacity = 0;
-        jaEl.innerText = jaText;
-        hintEl.innerText = "";
-        micBtn.style.display = 'none';
-        micBtn.classList.remove('pulse');
-
-        // ★裏では最初からマイク判定を開始しておく（子供の即答を逃さない）
-        currentTarget = targetKey;
-        currentCallback = callbackFunc;
-
-        // 2秒後に日本語とマイクボタンを同期解放
+    // 擬似的な2秒ポーズ（フリーズ防止の心理的フォロー）
+    function simulateThinking(statusElementId, successCallback) {
+        const statusEl = document.getElementById(statusElementId);
+        statusEl.innerText = "認識中... そのまま1〜2秒お待ちください！";
+        statusEl.style.color = "#ffff00";
         setTimeout(() => {
-            jaEl.style.opacity = 1;
-            hintEl.innerText = hintText;
-            micBtn.style.display = 'flex';
-            micBtn.classList.add('pulse');
+            successCallback(statusEl);
         }, 2000);
     }
 
-    // ================= ゲーム進行ロジック =================
-
-    function startGame() {
-        const nameInput = document.getElementById('player-name').value;
-        if(nameInput.trim() !== "") masterName = nameInput;
-        
-        isGameRunning = true;
-        initSpeechEngine(); // ここでブラウザのセキュリティロックを完全破壊
-        
-        playBGM('bgm-opening');
-        changeScene('scene-login', 'scene-bedroom', 'bg-room');
-        initScene2();
+    // 毎朝のくじ引き（API通信ゼロ）
+    function startRoutineMic() {
+        simulateThinking('routine-status', (el) => {
+            const replies = [
+                "Awesome! Let's enjoy today's adventure!",
+                "Take it easy! 今日もマイペースで行こう！",
+                "I see! 元気を出して冒険に出発だ！"
+            ];
+            const randomReply = replies[Math.floor(Math.random() * replies.length)];
+            el.innerText = `ピコ: "${randomReply}"`;
+            el.style.color = "#00ff00";
+            document.getElementById('btn-next-routine').style.display = 'inline-block';
+        });
     }
 
-    // シーン2: 朝の目覚め
-    function initScene2() {
-        playVoice('voice-s2');
-        triggerDelayedTranslation(
-            's2-en', 's2-ja', 's2-hint', 'mic-s2',
-            `"Listen, ${masterName}. The dark is coming. Look at the window. Open it! Look at the forest. Your big journey begins!"`,
-            `「聞け、${masterName}。闇が迫っている。窓を見ろ。それを開けるんだ！森を見ろ。君の偉大なる旅が、今始まる！」`,
-            `💡ピコヒント：マイクに向かって「オープン！」って大声で叫んで窓を開けよう！`,
-            'open',
-            handleScene2Success
-        );
+    function startHelloMic() {
+        simulateThinking('hello-status', (el) => {
+            el.innerText = "ピコ: 「天才じゃない！？マスター、おはよう！」";
+            el.style.color = "#00ff00";
+            document.getElementById('btn-next-hello').style.display = 'inline-block';
+        });
     }
 
-    function handleScene2Success() {
-        playSE('se-success');
-        container.classList.add('success-flash');
-        document.getElementById('mic-s2').style.display = 'none';
-        
-        setTimeout(() => {
-            container.classList.remove('success-flash');
-            
-            // シーン3: 都会から森への3段階グラデーションシームレス移動
-            container.className = 'bg-suburb';
-            setTimeout(() => {
-                container.className = 'bg-country';
-                setTimeout(() => {
-                    container.className = 'bg-forest';
-                    initScene4(); // シーン4（ピコ遭遇）へ完全結合
-                }, 1000);
-            }, 1000);
-        }, 500);
+    function startJapanMic() {
+        simulateThinking('japan-status', (el) => {
+            el.innerText = "大成功！コングに声が届いた！";
+            el.style.color = "#00ff00";
+            document.getElementById('btn-next-japan').style.display = 'inline-block';
+        });
     }
 
-    // シーン4: ピコとの出会い (Say Hello! ➔ 名前登録)
-    function initScene4() {
-        stopBGM('bgm-opening');
-        playBGM('bgm-adventure');
-        document.getElementById('scene-piko').classList.add('active');
-        
-        triggerDelayedTranslation(
-            's4-en', 's4-ja', 's4-hint', 'mic-s4',
-            `"Say 'Hello'!"`,
-            `ピコ：「わあ！待ってたよ！ボクの名前はピコ（PIKO）！目覚めたばかりの万能ロボなんだ！マスター、ボクを起動させるために『ハロー！』って叫んで！」`,
-            `💡ピコヒント：「ハロー！」とマイクに叫んでピコを起動させよう！`,
-            'hello',
-            function() {
-                playSE('se-success');
-                initScene4NameRegistration();
-            }
-        );
+    function startNameMic() {
+        const nameInput = prompt("（※実際の音声認識の代わりに名前を入力してください）");
+        if(nameInput) {
+            playerName = nameInput;
+            simulateThinking('name-status', (el) => {
+                el.innerText = `コングは「${playerName}」という名前を覚えた！`;
+                el.style.color = "#00ff00";
+                document.getElementById('kong-call').innerText = `コング: "${playerName}! Friend!? Are you my friend?"`;
+                document.getElementById('btn-next-name').style.display = 'inline-block';
+            });
+        }
     }
 
-    // シーン4後半: 名前音声登録
-    function initScene4NameRegistration() {
-        playVoice('voice-s4');
-        if(recognition) recognition.lang = 'ja-JP'; // 名前だけ日本語対応
-        
-        triggerDelayedTranslation(
-            's4-en', 's4-ja', 's4-hint', 'mic-s4',
-            `"What's your name?"`,
-            `ピコ：「起動成功！天才じゃない！？これからよろしくね！マスター、ボクに呼ばれたいカッコいい名前をマイクで教えて！」`,
-            `💡ピコヒント：呼ばれたいハンドルネームをマイクに向かって叫んでね！`,
-            'name_reg',
-            function() {
-                playSE('se-success');
-                if(recognition) recognition.lang = 'en-US'; // 英語に戻す
-                
-                document.getElementById('mic-s4').style.display = 'none';
-                document.getElementById('s4-en').innerText = `[ PARTY IN: ${masterName} ]`;
-                document.getElementById('s4-ja').innerText = `ピコ：「ワオ！【${masterName}】っていうんだね！最高に強そうな名前だ！よーし、これから最高の相棒（マスター）としてよろしくね！」`;
-                document.getElementById('s4-hint').innerText = "（……ズズズ……地鳴りのような音が響き渡る……！）";
-
-                setTimeout(() => { initScene5(); }, 3500);
-            }
-        );
-    }
-
-    // シーン5: コング遭遇 (2秒の即答タイム搭載)
-    function initScene5() {
-        changeScene('scene-piko', 'scene-kong', 'bg-forest');
-        playSE('se-roar');
-
-        playVoice('voice-s5');
-        
-        // 2秒の即答タイム（優秀な子はここで即「Japan!」と叫べば通過）
-        triggerDelayedTranslation(
-            's5-en', 's5-ja', 's5-hint', 'mic-s5',
-            `"WHERE ARE YOU FROM!?"`,
-            `ピコ（ロシア兵にヘンシン）：「うわわっ、マスター危ない！ボクの後ろに隠れて！……って、あれ？ 怒って攻撃してきているんじゃなくて、『どこから来たの？』って質問しているみたいだよ！」`,
-            `💡ピコヒント：ビビらずに "Japan!"（ジャパン！）や君の住んでる街の名前を叫ぶんだ！`,
-            'japan',
-            handleScene5Success
-        );
-    }
-
-    function handleScene5Success() {
-        playSE('se-success');
-        container.classList.add('success-flash');
-        document.getElementById('mic-s5').style.display = 'none';
-        setTimeout(() => {
-            container.classList.remove('success-flash');
-            initScene6();
-        }, 500);
-    }
-
-    // シーン6: コング大号泣 ➔ 運命のYes!
-    function initScene6() {
-        changeScene('scene-kong', 'scene-yes', 'bg-forest');
-        playVoice('voice-s6-1');
-        
-        triggerDelayedTranslation(
-            's6-en', 's6-ja', 's6-hint', 'mic-s6',
-            `"My body is so big. But I am very shy. I want friends. But I say something, people go away... why?"`,
-            `「『僕の体はこんなに大きいけれど、本当はとってもシャイなんだ。友達が欲しいだけなのに、俺が声を出すとみんな怖がって逃げてしまう……なぜなんだろう？』って言ってるよ……コング、寂しくて泣いてたんだね……」`,
-            `（コングが涙を拭きながら、じっとこちらを見つめている……）`,
-            'wait_phase',
-            function(){}
-        );
-
-        // コングの告白後、自動で最終質問へ
-        setTimeout(() => {
-            playVoice('voice-s6-2');
-            triggerDelayedTranslation(
-                's6-en', 's6-ja', 's6-hint', 'mic-s6',
-                `"Friend...!? Are you my friend?"`,
-                `コング：「ともだち……！？ お前、俺の友達になってくれるのか……？」`,
-                `💡ピコヒント：最高の笑顔で「イエス！」ってマイクに叫んであげて！`,
-                'yes',
-                handleScene6Success
-            );
-        }, 6500);
-    }
-
-    function handleScene6Success() {
-        playSE('se-success');
-        document.getElementById('img-kong-cry').src = "images/ch1_kong_smile.png"; // 笑顔に！
-        document.getElementById('s6-en').style.color = "#ffeb3b";
-        document.getElementById('s6-en').innerText = "✨ [ PARTY IN: KONG ] CLEAR!! ✨";
-        document.getElementById('s6-ja').innerHTML = `<strong>ピコ：「やったね${masterName}！！最高の友達ができたよ！マスターが恐れずにぶつけた『Japan!』や『Yes!』っていうたった一言の英語が、コングの心を救って世界を変えたんだよ！本当に天才！」</strong><br><br>さあ、コングと一緒に、失われた言葉を取り戻す『Eigo DE Quest』の壮大な旅へ、出発だーーー！`;
-        document.getElementById('s6-hint').innerText = "🎉 第1章：コングの森 クリア！ 【第2章 オオカミ男ジェン編】のポイポイ準備が整いました！";
-        document.getElementById('mic-s6').style.display = 'none';
-        isGameRunning = false;
-        if(recognition) recognition.stop();
+    function startYesMic() {
+        simulateThinking('yes-status', (el) => {
+            el.innerText = "モンスターコングが パーティーに加わった！";
+            el.style.color = "#00ff00";
+            document.getElementById('btn-next-yes').style.display = 'inline-block';
+        });
     }
 </script>
-
 </body>
 </html>
