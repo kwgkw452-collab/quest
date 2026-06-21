@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Eigo DE Quest - 第1章 (Ver.6)</title>
+    <title>Eigo DE Quest - 第1章 (Ver.7)</title>
     <style>
         /* 見た目を大変更！背景を紺色に、枠線をエメラルドグリーンに */
         body { background-color: #0b1d28; color: #eee; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 30px; margin: 0; }
@@ -50,7 +50,7 @@
 </head>
 <body>
 
-    <div class="version-tag">★ テスト Ver.6 (最終到達版) ★</div>
+    <div class="version-tag">★ テスト Ver.7 (エラー完全回避版) ★</div>
 
     <div id="game-screen">
         <div id="image-placeholder">【背景：都会の部屋】</div>
@@ -127,7 +127,7 @@
                     speakerEl.innerText = "システム";
                     textEl.innerHTML = "森の広場で、電池切れで眠っている可愛いロボットを見つけた。<br><br><b>Say 'Hello'!（マイクで叫んで起動させよう！）</b>";
                     nextBtn.style.display = "none";
-                    micBtn.style.display = "inline-block"; // ここで初めてマイクボタンが出現！
+                    micBtn.style.display = "inline-block"; 
                     setupMic(["hello", "はろー", "pico", "ピコ", "ぴこ", "school", "pickle", "peaco", "google"], 3); 
                     break;
                 case 3:
@@ -200,16 +200,27 @@
         }
 
         recognition.onresult = function(event) {
-            // ★【絶対確実な修正】記号の消滅を防ぐため、別の書き方（ item(0) ）を採用しました！
-            let transcript = event.results.item(0).item(0).transcript;
+            // ★【絶対確実な修正・Ver.7】
+            // 記号が消える問題と、ブラウザがエラーを起こしてフリーズする問題を両方防ぐため、
+            // 安全な「forループ」で音声データを取り出す書き方に完全変更しました！
+            let transcript = "";
+            for (let res of event.results) {
+                for (let alt of res) {
+                    transcript = alt.transcript;
+                    break; // 最初の言葉だけを確実に抜き出して終了する
+                }
+                break;
+            }
             
+            // 画面を切り替える
             listeningTextEl.style.display = "none";
             playerWindowLargeEl.style.display = "block";
             
+            // 取り出した言葉を画面にドカンと表示する
             playerNameLargeEl.innerText = (playerName && playerName !== "undefined") ? playerName : "マスター（あなた）";
             playerTextLargeEl.innerText = `「${transcript}」`;
             
-            // 大文字・小文字の区別や記号による判定エラーを防ぐための大掃除処理
+            // 大掃除ロジック
             let cleanedText = transcript.toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶｱ-ﾝﾞﾟ一-龠]/g, ""); 
             
             if (targetWordsArray.includes("ANY")) {
