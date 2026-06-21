@@ -2,513 +2,272 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eigo DE Quest - Prologue</title>
+    <title>Eigo DE Quest - 第1章</title>
     <style>
-        :root {
-            --primary-color: #4CAF50;
-            --accent-color: #FF5722;
-            --bg-color: #1a1a1a;
-            --window-bg: rgba(0, 0, 0, 0.75);
-        }
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: white;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            overflow: hidden;
-            user-select: none;
-        }
-        /* ゲーム画面全体 */
-        #game-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            background-size: cover;
-            background-position: center;
-            transition: background-image 0.5s ease;
-        }
-        /* リスク・エラー表示領域（常時監視用レイーター） */
-        #system-monitor {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            font-size: 11px;
-            color: #ff3333;
-            background: rgba(0,0,0,0.6);
-            padding: 2px 5px;
-            border-radius: 3px;
-            z-index: 1000;
-            pointer-events: none;
-        }
-        /* キャラクター配置 */
-        #character-area {
-            position: absolute;
-            bottom: 20%;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            gap: 50px;
-        }
-        .character-img {
-            max-height: 50vh;
-            object-fit: contain;
-            transition: transform 0.3s, opacity 0.5s;
-        }
-        .zzz-animation {
-            position: absolute;
-            font-size: 24px;
-            color: #00ffff;
-            animation: floatingZ 2s infinite ease-in-out;
-            opacity: 0;
-        }
-        @keyframes floatingZ {
-            0% { transform: translate(0, 0) scale(0.8); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translate(20px, -50px) scale(1.2); opacity: 0; }
-        }
-        /* メッセージウィンドウ */
-        #ui-window {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 800px;
-            background: var(--window-bg);
-            border: 3px solid #fff;
-            border-radius: 15px;
-            padding: 20px;
-            box-sizing: border-box;
-            min-height: 150px;
-        }
-        #speaker-name {
-            font-size: 18px;
-            font-weight: bold;
-            color: #FFD700;
-            margin-bottom: 10px;
-        }
-        #dialogue-text {
-            font-size: 16px;
-            line-height: 1.6;
-        }
-        /* 入力・操作ボタン群 */
-        #control-panel {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        button {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        button:hover { filter: brightness(1.2); }
-        input[type="text"] {
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: none;
-            width: 200px;
-        }
-        /* 常設：オンデマンド・サポートボタン */
-        #support-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #008CBA;
-            z-index: 100;
-        }
-        /* 解説・サポートモーダル */
-        #support-overlay {
-            display: none;
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 200;
-            justify-content: center;
+        /* ドラクエ風のシンプルなUIスタイル */
+        body { background-color: #111; color: #eee; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 50px; margin: 0; }
+        #game-screen { width: 90%; max-width: 600px; border: 3px solid #eee; border-radius: 10px; padding: 20px; background-color: #000; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
+        
+        /* 画像が入る予定の空枠 */
+        #image-placeholder { height: 250px; border: 2px dashed #555; display: flex; justify-content: center; align-items: center; color: #888; margin-bottom: 20px; font-size: 14px; background-color: #222;}
+        
+        /* システム・NPC用のメッセージウィンドウ */
+        #message-window { border: 2px solid #eee; border-radius: 5px; padding: 15px; min-height: 100px; position: relative; margin-bottom: 15px; }
+        #speaker-name { color: #ffd700; font-weight: bold; font-size: 18px; margin-bottom: 10px; display: block; }
+        #message-text { font-size: 18px; line-height: 1.5; }
+        
+        /* ボタンエリア */
+        #controls { margin-top: 10px; text-align: center; height: 60px; }
+        button { background-color: #333; color: #fff; border: 2px solid #fff; border-radius: 5px; padding: 15px 20px; font-size: 18px; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        button:hover { background-color: #555; }
+        #mic-btn { background-color: #aa0000; display: none; width: 80%; max-width: 400px; }
+        #mic-btn:hover { background-color: #cc0000; }
+
+        /* 状態・判定結果表示（通常画面用） */
+        #status-text { margin-top: 15px; color: #ffcc00; font-size: 16px; font-weight: bold; text-align: center; height: 25px;}
+
+        /* ★超絶進化：マイク入力と結果をデカデカと表示する全画面オーバーレイ */
+        #mic-overlay {
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0, 0, 0, 0.85); /* 背景を暗くして集中させる */
+            z-index: 1000; 
+            flex-direction: column; 
+            justify-content: center; 
             align-items: center;
         }
-        .modal-content {
-            background: #2c3e50;
-            padding: 30px;
-            border-radius: 10px;
-            max-width: 500px;
-            width: 85%;
-            border: 2px solid #008CBA;
+        #mic-listening-text {
+            color: #ff5555; font-size: 40px; font-weight: bold; margin-bottom: 30px;
+            animation: blink 1s infinite alternate; /* 点滅アニメーション */
         }
-        /* 音声認識中インジケータ */
-        #mic-status {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            background-color: #ccc;
-            border-radius: 50%;
-            margin-left: 10px;
+        @keyframes blink {
+            0% { opacity: 1; }
+            100% { opacity: 0.3; }
         }
-        .recording { background-color: red !important; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+        
+        /* デカデカと出る生徒用の発話表示ウィンドウ */
+        #player-message-large {
+            border: 4px solid #4da6ff; border-radius: 15px; padding: 40px; 
+            background-color: rgba(77, 166, 255, 0.2); 
+            text-align: center; display: none; width: 80%; max-width: 500px;
+            box-shadow: 0 0 30px rgba(77, 166, 255, 0.5);
+        }
+        #player-name-large { color: #4da6ff; font-weight: bold; font-size: 24px; display: block; margin-bottom: 15px; }
+        #player-text-large { font-size: 50px; font-weight: bold; color: #fff; line-height: 1.2; }
+        
+        /* デカデカ判定結果 */
+        #judge-result-large { font-size: 50px; font-weight: bold; margin-top: 30px; text-shadow: 0 0 10px #000; }
     </style>
 </head>
 <body>
 
-    <div id="system-monitor">Speech API: Ready | Storage: Active</div>
-
-    <!-- オンデマンド・サポートボタン -->
-    <button id="support-btn" onclick="toggleSupport(true)">💡 解説・ポーズ</button>
-
-    <div id="game-container">
-        <!-- キャラクター表示エリア -->
-        <div id="character-area">
-            <div style="position: relative;">
-                <img id="npc-img" class="character-img" style="display:none;" src="" alt="NPC">
-                <div id="zzz-icon" class="zzz-animation">Zzz...</div>
-            </div>
+    <div id="game-screen">
+        <!-- 背景やキャラクター画像が入るエリア -->
+        <div id="image-placeholder">【背景：都会の部屋】</div>
+        
+        <!-- NPCメッセージエリア -->
+        <div id="message-window">
+            <span id="speaker-name">システム</span>
+            <span id="message-text">都会の朝。枕元に見覚えのない地図がある...「Go to the forest.」</span>
         </div>
-
-        <!-- UIウィンドウ -->
-        <div id="ui-window">
-            <div id="speaker-name">システム</div>
-            <div id="dialogue-text">ロード中...</div>
-            <div id="control-panel"></div>
+        
+        <div id="controls">
+            <button id="next-btn" onclick="nextScene()">次へ ▼</button>
+            <button id="mic-btn" onclick="startMic()">🎤 ボタンを押して英語を叫ぶ！</button>
         </div>
     </div>
+    
+    <div id="status-text"></div>
 
-    <!-- 解説用オーバーレイ（一時停止空間） -->
-    <div id="support-overlay">
-        <div class="modal-content">
-            <h3>💡 ピコのワンポイント解説ルーム</h3>
-            <p id="support-text">ここに現在進行中のバトルのコツや、単語の意味が表示されるよ！ゆっくり読んでね。</p>
-            <button onclick="toggleSupport(false)">冒険に戻る</button>
+    <!-- ★ドカンと出る全画面マイクオーバーレイ -->
+    <div id="mic-overlay">
+        <!-- 聞き取り中のサイン -->
+        <div id="mic-listening-text">🎤 今、話してください！</div>
+        
+        <!-- デカデカと出る生徒の言葉 -->
+        <div id="player-message-large">
+            <span id="player-name-large">マスター（あなた）</span>
+            <span id="player-text-large"></span>
         </div>
+        
+        <!-- 判定結果（大成功！など） -->
+        <div id="judge-result-large"></div>
     </div>
 
     <script>
-        // --- 1. グローバル状態管理 ---
-        let player = { name: "", currentStep: "init" };
-        let isPaused = false;
-        let supportMessage = "困ったときはいつでもここを押してね！";
+        // --- 状態管理（シーン）---
+        let currentScene = 0;
+        let playerName = "";
+
+        // UI要素の取得
+        const speakerEl = document.getElementById("speaker-name");
+        const textEl = document.getElementById("message-text");
+        const nextBtn = document.getElementById("next-btn");
+        const micBtn = document.getElementById("mic-btn");
+        const placeholderEl = document.getElementById("image-placeholder");
+        const statusEl = document.getElementById("status-text");
         
-        // ピコの3段階サポート用タイマー
-        let pikoTimer1 = null;
-        let pikoTimer2 = null;
+        // オーバーレイ要素の取得
+        const overlayEl = document.getElementById("mic-overlay");
+        const listeningTextEl = document.getElementById("mic-listening-text");
+        const playerWindowLargeEl = document.getElementById("player-message-large");
+        const playerNameLargeEl = document.getElementById("player-name-large");
+        const playerTextLargeEl = document.getElementById("player-text-large");
+        const judgeResultLargeEl = document.getElementById("judge-result-large");
 
-        // 音声認識オブジェクト
+        // 音声認識の設定 (Web Speech API)
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition = null;
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.lang = 'en-US'; // 英語判定ベース
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US'; 
+        recognition.interimResults = false;
+
+        function nextScene() {
+            currentScene++;
+            updateScene();
         }
 
-        // --- 2. シナリオ＆クエストデータ定義 ---
-        // 4点セット（Q, 想定回答, 3段階サポート, 敗北時誘導）を内包
-        const SCENARIO = {
-            loginRoutine: {
-                bg: "assets/bg/morning.png", // 毎朝のルーティン背景
-                speaker: "ピコ",
-                text: "Good morning! How are you feeling today?",
-                support: "今の気分を答えてみてね！ 'fine' や 'happy'、'sleepy'（ねむい）でもなんでも受け止めるよ！",
-                setupUI: () => {
-                    startVoiceInput(["fine", "good", "happy", "sleepy", "tired", "ふぁいん", "はっぴー", "ねむい"], () => {
-                        // 全肯定のクジ引き
-                        const gacha = [
-                            "最高だね！その調子で今日も突き進もう！",
-                            "素晴らしい！君のエネルギーが画面越しに伝わってくるよ！",
-                            "そっかそっか、眠い日もあるよね。無理せず一歩ずついこう！"
-                        ];
-                        const reply = gacha[Math.floor(Math.random() * gacha.length)];
-                        showSequence("pikoJoin_1", `ピコ: 「${reply}」`);
-                    });
-                }
-            },
-            pikoJoin_1: {
-                bg: "assets/bg/forest.png",
-                npc: "assets/chara/piko_01.png", // ピコ立ち絵
-                speaker: "ナレーション",
-                text: "薄暗い森を歩いていると、目の前に奇妙な形のロボット（？）が落ちていた。ポチッとスイッチを押してみる。",
-                setupUI: () => {
-                    setNextButton("pikoJoin_2");
-                }
-            },
-            pikoJoin_2: {
-                bg: "assets/bg/forest.png",
-                npc: "assets/chara/piko_02.png",
-                speaker: "???",
-                text: "「ピピッ……起動システム正常。ボクの名前はピコ！君の英語のバディになるために未来から来たんだ！ねえねえ、ボクの名前を呼んでみて！」",
-                support: "ピコの名前を英語っぽく呼んでみよう！「piko」が入っていれば大正解だよ！カタカナの「ぴこ」でも届くからね！",
-                setupUI: () => {
-                    // バトル仕様（4点セット駆動）
-                    executeQuest({
-                        keywords: ["piko", "pico", "ぴこ", "ピコ"],
-                        hint1: "★ピコからのお願い：画面に向かって『piko』って言ってみて！",
-                        hint2: "★具体例：『Hello, piko!』や、シンプルに『piko!』だけでOKだよ！",
-                        onSuccess: () => {
-                            showSequence("pikoSuccess", "ピコ: 「わーい！呼んでくれてありがとう！これでボクたちは正式に契約された仲間だよ！」");
-                        }
-                    });
-                }
-            },
-            pikoSuccess: {
-                bg: "assets/bg/forest.png",
-                npc: "assets/chara/piko_11.png", // 喜びポーズ
-                speaker: "システム",
-                text: "ピコが正式に仲間に加わった！LocalStorageに進捗を記録しました。Googleサイトの目次へ戻りましょう。",
-                setupUI: () => {
-                    player.currentStep = "clear";
-                    saveToStorage();
-                    const panel = document.getElementById("control-panel");
-                    panel.innerHTML = `<button onclick="exitToGoogleSites()">Googleサイトの目次へ戻る</button>`;
-                }
-            }
-        };
+        function updateScene() {
+            nextBtn.style.display = "inline-block";
+            micBtn.style.display = "none";
+            statusEl.innerText = "";
 
-        // --- 3. システム初期化 ---
-        window.onload = function() {
-            loadFromStorage();
-            if (!player.name) {
-                // 名前未登録ならハンドルネーム入力画面へ
-                showNameRegistration();
-            } else {
-                // 登録済みなら挨拶ルーティンからスタート
-                showSequence("loginRoutine", `おかえりなさい、${player.name}！`);
-            }
-        };
-
-        // ローカルストレージ管理
-        function saveToStorage() {
-            localStorage.setItem("edq_player_data", JSON.stringify(player));
-        }
-        function loadFromStorage() {
-            const data = localStorage.getItem("edq_player_data");
-            if (data) {
-                player = JSON.parse(data);
+            switch (currentScene) {
+                case 1:
+                    placeholderEl.innerText = "【背景：都会➔田舎➔森へグラデーション移動】";
+                    speakerEl.innerText = "システム";
+                    textEl.innerText = "地図が示す不思議な森の入り口へ向かう...景色が変わっていく。";
+                    break;
+                case 2:
+                    placeholderEl.innerText = "【画像：pico_08.png (電池切れのピコ)】";
+                    speakerEl.innerText = "システム";
+                    textEl.innerHTML = "森の広場で、電池切れで眠っている可愛いロボットを見つけた。<br><br><b>Say 'Hello'!（マイクで叫んで起動させよう！）</b>";
+                    nextBtn.style.display = "none";
+                    micBtn.style.display = "inline-block";
+                    setupMic(["hello", "はろー", "pico", "ピコ", "ぴこ", "school", "pickle", "peaco", "google"], 3); 
+                    break;
+                case 3:
+                    placeholderEl.innerText = "【画像：pico_02.png (大喜びのピコ)】";
+                    speakerEl.innerText = "ピコ";
+                    textEl.innerText = "「マスター！声を聞かせてくれてありがとう！ボクはピコ、よろしくね！」";
+                    break;
+                case 4:
+                    placeholderEl.innerText = "【画像：kong_10.png (威嚇するコング)】\n※地鳴りの音";
+                    speakerEl.innerText = "コング (大怪獣)";
+                    textEl.innerText = "「WHERE ARE YOU FROM!? (お前はどこから来た！？)」";
+                    break;
+                case 5:
+                    placeholderEl.innerText = "【画像：pico_01.png】";
+                    speakerEl.innerText = "ピコ";
+                    textEl.innerText = "「マスター！ビビらずに 'Japan' って叫ぶんだ！」";
+                    nextBtn.style.display = "none";
+                    micBtn.style.display = "inline-block";
+                    setupMic(["japan", "じゃぱん", "ジャパン"], 6); 
+                    break;
+                case 6:
+                    placeholderEl.innerText = "【画像：kong_06.png (大号泣するコング)】";
+                    speakerEl.innerText = "コング";
+                    textEl.innerText = "「俺の外見を見て逃げ出さずに答えてくれた...！！(滝のような涙)」";
+                    break;
+                case 7:
+                    placeholderEl.innerText = "【画像：kong_01.png】";
+                    speakerEl.innerText = "コング";
+                    textEl.innerText = "「What's your name? (お前の名前はなんだ？)」\n※マイクで自分の名前を教えてあげよう！";
+                    nextBtn.style.display = "none";
+                    micBtn.style.display = "inline-block";
+                    recognition.lang = 'ja-JP'; 
+                    setupMic(["ANY"], 8); 
+                    break;
+                case 8:
+                    placeholderEl.innerText = "【画像：kong_02.png (大喜びのコング)】";
+                    speakerEl.innerText = "コング";
+                    textEl.innerText = `「${playerName}!? Are you my friend!? (俺の友達か！？)」`;
+                    nextBtn.style.display = "none";
+                    micBtn.style.display = "inline-block";
+                    recognition.lang = 'en-US'; 
+                    setupMic(["yes", "いえす", "イエス"], 9); 
+                    break;
+                case 9:
+                    placeholderEl.innerText = "【仲間合流のファンファーレ】";
+                    speakerEl.innerText = "システム";
+                    textEl.innerText = "コングが仲間になった！\n\n第1章クリア！！";
+                    nextBtn.style.display = "none";
+                    micBtn.style.display = "none";
+                    statusEl.innerHTML = "<button onclick='alert(\"Googleサイトの目次へ戻ります\")'>次の冒険へ進む</button>";
+                    break;
             }
         }
 
-        // 名前登録画面
-        function showNameRegistration() {
-            changeBackground("assets/bg/title.png");
-            setNPCImage("");
-            document.getElementById("speaker-name").innerText = "システム";
-            document.getElementById("dialogue-text").innerText = "『Eigo DE Quest』の世界へようこそ！あなたの「世界に一つだけの名前」を入力してください（パスワードは不要です）。";
+        // --- 音声認識と判定ロジック ---
+        let targetWordsArray = [];
+        let nextSceneNum = 0;
+
+        function setupMic(wordsArray, next) {
+            targetWordsArray = wordsArray; 
+            nextSceneNum = next;
+        }
+
+        function startMic() {
+            // オーバーレイを表示して「今話して！」とデカデカ伝える
+            overlayEl.style.display = "flex";
+            listeningTextEl.style.display = "block";
+            playerWindowLargeEl.style.display = "none";
+            judgeResultLargeEl.innerText = "";
             
-            const panel = document.getElementById("control-panel");
-            panel.innerHTML = `
-                <input type="text" id="username-input" placeholder="ハンドルネームを入力">
-                <button onclick="registerName()">冒険をはじめる</button>
-            `;
+            recognition.start();
         }
 
-        function registerName() {
-            const input = document.getElementById("username-input").value.trim();
-            if (!input) {
-                alert("名前を入力してね！");
-                return;
-            }
-            player.name = input;
-            player.currentStep = "loginRoutine";
-            saveToStorage();
-            showSequence("loginRoutine");
-        }
-
-        // --- 4. 画面遷移＆UI制御コア ---
-        function showSequence(stepKey, overrideText = null) {
-            const step = SCENARIO[stepKey];
-            if (!step) return;
-
-            // クリーンアップ（タイマー等）
-            clearPikoTimers();
-
-            // 背景・画像アセット反映
-            changeBackground(step.bg);
-            if (step.npc) {
-                setNPCImage(step.npc);
-            } else {
-                setNPCImage("");
-            }
-
-            // テキスト反映
-            document.getElementById("speaker-name").innerText = step.speaker;
-            document.getElementById("dialogue-text").innerText = overrideText ? overrideText : step.text;
+        recognition.onresult = function(event) {
+            let transcript = event.results.transcript;
             
-            // サポートテキストの更新
-            supportMessage = step.support || "リラックスして、自分のペースで話しかけてみてね。";
-
-            // 各ステップ固有のUI構築
-            step.setupUI();
-        }
-
-        function changeBackground(url) {
-            const container = document.getElementById("game-container");
-            // 本番環境のアセット不随に備えるモック表現
-            container.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('${url}')`;
+            // 話し終わったら「今話して！」の文字を消して、デカデカ窓を出す
+            listeningTextEl.style.display = "none";
+            playerWindowLargeEl.style.display = "block";
             
-            // おやすみシステム（夜背景判定）の自動連動
-            const zzz = document.getElementById("zzz-icon");
-            if (url.includes("night")) {
-                zzz.style.opacity = "1";
+            playerNameLargeEl.innerText = playerName ? playerName : "マスター（あなた）";
+            playerTextLargeEl.innerText = `「${transcript}」`;
+            
+            let cleanedText = transcript.toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶｱ-ﾝﾞﾟ一-龠]/g, "");
+            
+            if (targetWordsArray.includes("ANY")) {
+                playerName = transcript;
+                localStorage.setItem("EigoQuest_PlayerName", playerName); 
+                judgeResultLargeEl.style.color = "#ffcc00";
+                judgeResultLargeEl.innerText = "🌟 大成功！！";
+                setTimeout(closeOverlayAndProceed, 2000);
             } else {
-                zzz.style.opacity = "0";
-            }
-        }
-
-        function setNPCImage(url) {
-            const img = document.getElementById("npc-img");
-            if (url) {
-                img.src = url;
-                img.style.display = "block";
-            } else {
-                img.style.display = "none";
-            }
-        }
-
-        function setNextButton(nextStepKey) {
-            const panel = document.getElementById("control-panel");
-            panel.innerHTML = `<button onclick="showSequence('${nextStepKey}')">次へ ➔</button>`;
-        }
-
-        // --- 5. 4点セット：音声認識＆ピコ3段階サポートロジック ---
-        function executeQuest(config) {
-            // ① 即座に音声入力を開始（2秒のポーズ/頷き待機を含むインターフェース）
-            startVoiceInput(config.keywords, config.onSuccess, () => {
-                // 音声認識失敗時（理解不能時）のリトライ誘導（プライド死守）
-                document.getElementById("dialogue-text").innerText = "ピコ: 「ピコの辞書に入ってない新しい単語だったみたい！ポンコツでごめんね！もう一回教えてくれる？」";
-            });
-
-            // ② 2秒のポーズ ➔ 軽いヒント割り込み
-            pikoTimer1 = setTimeout(() => {
-                if (isPaused) return;
-                appendGuideText(config.hint1);
-            }, 4000); // 体感を考慮し少し長めに設定
-
-            // ③ さらに時間経過 ➔ 答え方の具体例誘導
-            pikoTimer2 = setTimeout(() => {
-                if (isPaused) return;
-                appendGuideText(config.hint2);
-                // 救済策として、クリックで突破できるデバッグ・補助ボタンも設置
-                appendSkipButton(config.onSuccess);
-            }, 8000);
-        }
-
-        function startVoiceInput(keywords, onSuccessCallback, onFailCallback) {
-            const panel = document.getElementById("control-panel");
-            panel.innerHTML = `
-                <button onclick="triggerManualListen()">🎤 声を出して答える</button>
-                <span id="mic-status"></span>
-            `;
-
-            if (!recognition) {
-                // Speech API未対応ブラウザへの保険
-                panel.innerHTML += `<button id="mock-speech-btn" style="background:#e67e22;">(デバッグ用)音声の代わりにボタンで突破</button>`;
-                document.getElementById("mock-speech-btn").onclick = onSuccessCallback;
-                return;
-            }
-
-            // 内部処理用の認識関数
-            window.triggerManualListen = () => {
-                if (isPaused) return;
-                const statusCircle = document.getElementById("mic-status");
-                statusCircle.classList.add("recording");
+                let isHit = targetWordsArray.some(word => cleanedText.includes(word));
                 
-                recognition.start();
-            };
-
-            recognition.onresult = function(event) {
-                const statusCircle = document.getElementById("mic-status");
-                statusCircle.classList.remove("recording");
-
-                // 【大掃除処理】
-                let rawSpeech = event.results[0][0].transcript;
-                let cleanSpeech = rawSpeech.toLowerCase().replace(/[\.\?\!\,]/g, "").trim();
-                
-                document.getElementById("system-monitor").innerText = `Speech API: Logged "${cleanSpeech}"`;
-
-                // 【キーワード検知（includes）】
-                let isHit = keywords.some(keyword => cleanSpeech.includes(keyword.toLowerCase()));
-
                 if (isHit) {
-                    clearPikoTimers();
-                    onSuccessCallback();
+                    judgeResultLargeEl.style.color = "#ffcc00";
+                    judgeResultLargeEl.innerText = "🌟 大成功！！";
+                    setTimeout(closeOverlayAndProceed, 2500); // 結果を眺める時間を2.5秒に設定
                 } else {
-                    if (onFailCallback) onFailCallback();
+                    judgeResultLargeEl.style.color = "#ff5555";
+                    judgeResultLargeEl.innerText = "❌ 辞書にない言葉みたい！もう一度！";
+                    setTimeout(closeOverlayAndRetry, 2500);
                 }
-            };
-
-            recognition.onerror = function(event) {
-                const statusCircle = document.getElementById("mic-status");
-                statusCircle.classList.remove("recording");
-                document.getElementById("system-monitor").innerText = `Speech API Error: ${event.error}`;
-                if (onFailCallback) onFailCallback();
-            };
-        }
-
-        function appendGuideText(text) {
-            const textDiv = document.getElementById("dialogue-text");
-            textDiv.innerHTML += `<br><span style="color:#00ffff; font-size:14px;">${text}</span>`;
-        }
-
-        function appendSkipButton(callback) {
-            const panel = document.getElementById("control-panel");
-            if (!document.getElementById("piko-skip-btn")) {
-                const btn = document.createElement("button");
-                btn.id = "piko-skip-btn";
-                btn.style.background = "#9b59b6";
-                btn.innerText = "ピコと一緒に次へすすむ";
-                btn.onclick = () => { clearPikoTimers(); callback(); };
-                panel.appendChild(btn);
             }
+        };
+
+        recognition.onerror = function(event) {
+            listeningTextEl.style.display = "none";
+            judgeResultLargeEl.style.color = "#ff5555";
+            judgeResultLargeEl.innerText = "❌ うまく聞き取れませんでした...";
+            setTimeout(closeOverlayAndRetry, 2000);
+        };
+
+        // 成功時にオーバーレイを閉じて次のシーンへ
+        function closeOverlayAndProceed() {
+            overlayEl.style.display = "none";
+            currentScene = nextSceneNum;
+            updateScene();
         }
 
-        function clearPikoTimers() {
-            if (pikoTimer1) clearTimeout(pikoTimer1);
-            if (pikoTimer2) clearTimeout(pikoTimer2);
-        }
-
-        // --- 6. 全肯定学習サポート（敗北時の退却システム） ---
-        // 本プロローグでゲームオーバーは発生しませんが、仕様書の「退却」トリガー用関数を実装
-        function triggerRetreat(failedWord) {
-            clearPikoTimers();
-            // 夜背景へ切り替え
-            changeBackground("assets/bg/night.png");
-            // ランダムに選ばれた仲間（ここではピコ）を寝姿に自動配置
-            setNPCImage("assets/chara/piko_08.png");
-            
-            document.getElementById("speaker-name").innerText = "ピコ";
-            document.getElementById("dialogue-text").innerText = `「退却ーーー！一度おやすみして全回復しよう！ 辞書かケータイで【${failedWord}】の単語を調べれば、次は絶対に勝てるよ！Zzz...」`;
-            
-            const panel = document.getElementById("control-panel");
-            panel.innerHTML = `<button onclick="showSequence('loginRoutine', '次の日の朝が来ました！全回復です！')">朝を迎える</button>`;
-        }
-
-        // --- 7. オンデマンド・サポートボタン（解説・一時停止） ---
-        function toggleSupport(show) {
-            isPaused = show;
-            const overlay = document.getElementById("support-overlay");
-            if (show) {
-                // 音声認識を強制ストップ
-                if (recognition) try { recognition.abort(); } catch(e){}
-                document.getElementById("support-text").innerText = supportMessage;
-                overlay.style.display = "flex";
-            } else {
-                overlay.style.display = "none";
-            }
-        }
-
-        // --- 8. 第1層（Googleサイト）への帰還 ---
-        function exitToGoogleSites() {
-            // 仕様書通り、Googleサイトの目次へ戻るためのリダイレクト（環境に合わせてURLを変更可能）
-            window.location.href = "https://sites.google.com/view/your-eigodequest-site"; 
+        // 失敗時にオーバーレイを閉じてリトライ
+        function closeOverlayAndRetry() {
+            overlayEl.style.display = "none";
+            statusEl.innerText = "もう一度「🎤 ボタンを押して」叫んでみて！";
         }
     </script>
 </body>
