@@ -2,340 +2,480 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Eigo DE Quest - 第1章 シネマティック完全版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eigo DE Quest - Chapter 1</title>
     <style>
-        /* 全体のベース設定 */
-        body { background-color: #000; color: #eee; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        :root {
+            --primary-color: #ffcc00;
+            --bg-overlay: rgba(0, 0, 0, 0.7);
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow: hidden;
+            user-select: none;
+        }
+        /* 劇場スタイル・背景レイヤー */
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 1.5s ease-in-out;
+        }
+        /* 各種画面の共通スタイル */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg-overlay);
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .hidden { display: none !important; }
         
-        /* 各スクリーンの表示設定 */
-        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; }
-        .active { display: flex; }
+        /* UIパーツ */
+        h1, h2 { color: var(--primary-color); text-shadow: 0 0 10px rgba(255,204,0,0.5); }
+        p { font-size: 1.2rem; line-height: 1.6; max-width: 600px; }
+        input[type="text"] {
+            padding: 12px 20px;
+            font-size: 1.2rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 25px;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            text-align: center;
+            outline: none;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: var(--primary-color);
+            color: #000;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255,204,0,0.4);
+            transition: transform 0.2s, background 0.2s;
+        }
+        button:hover { transform: scale(1.05); background: #ffe066; }
+        
+        /* 絶対ルール：発話表示ウィンドウ（上部・半透明） */
+        #speech-window {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            max-width: 800px;
+            background: rgba(0, 0, 0, 0.75);
+            border: 2px solid var(--primary-color);
+            border-radius: 15px;
+            padding: 15px;
+            box-sizing: border-box;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+        #speech-user { font-size: 0.9rem; color: var(--primary-color); margin-bottom: 5px; }
+        #speech-text { font-size: 1.6rem; font-weight: bold; color: #fff; }
 
-        /* 🎬 ① シネマティック・オープニング画面（宇宙と金色の文字） */
-        #cinematic-screen { background: radial-gradient(circle, #111 0%, #000 100%); perspective: 400px; position: relative; }
-        .crawl-container { position: absolute; bottom: 0; width: 100%; height: 100%; display: flex; justify-content: center; overflow: hidden; }
-        .crawl-text { color: #feda4a; font-size: 35px; font-weight: bold; text-align: center; text-shadow: 0 0 15px #feda4a; transform-origin: 50% 100%; animation: crawl 12s linear forwards; white-space: pre-wrap; line-height: 1.8; }
-        /* スターウォーズ風に奥へ消えていくアニメーション */
-        @keyframes crawl {
-            0% { transform: rotateX(20deg) translateY(100%) translateZ(0); opacity: 1; }
-            100% { transform: rotateX(40deg) translateY(-250%) translateZ(-500px); opacity: 0; }
+        /* キャラクター立ち絵レイヤー */
+        #character-layer {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 60vh;
+            pointer-events: none;
+            transition: transform 0.5s;
+        }
+        #char-img { height: 100%; object-fit: contain; }
+
+        /* メッセージウィンドウ（下部） */
+        #msg-window {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 800px;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        /* 📝 ② ログイン＆免責画面 */
-        #name-entry-screen { background-color: #0b1d28; text-align: center; padding: 20px; }
-        .disclaimer { color: #ffcc00; font-size: 18px; margin-top: 30px; line-height: 1.8; animation: fadeIn 2s; border: 2px dashed #ffcc00; padding: 20px; border-radius: 10px; background: rgba(0,0,0,0.5);}
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        input[type="text"] { font-size: 24px; padding: 15px; width: 80%; max-width: 350px; text-align: center; border-radius: 5px; border: 3px solid #00ffcc; background: #111; color: #fff; margin-bottom: 20px;}
+        /* 15秒休憩室スタイル */
+        #tips-screen { background: #111; color: #fff; }
+        .progress-bar {
+            width: 80%;
+            max-width: 400px;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 1s linear;
+        }
 
-        /* 🌳 ③ 本番ゲーム画面 */
-        #game-screen-container { width: 90%; max-width: 600px; border: 4px solid #00ffcc; border-radius: 10px; padding: 20px; background-color: #0b1d28; box-shadow: 0 0 30px rgba(0, 255, 204, 0.4); text-align: center; }
-        
-        /* 景色がグラデーションで変わる演出用のプレースホルダー */
-        #image-placeholder { height: 250px; border: 2px dashed #555; display: flex; justify-content: center; align-items: center; color: #fff; margin-bottom: 20px; font-size: 18px; background-color: #222; font-weight: bold; transition: background 3s ease;}
-        
-        #message-window { border: 2px solid #eee; border-radius: 5px; padding: 15px; min-height: 100px; position: relative; margin-bottom: 15px; text-align: left; background: #000;}
-        #speaker-name { color: #ffd700; font-weight: bold; font-size: 18px; margin-bottom: 10px; display: block; }
-        #message-text { font-size: 18px; line-height: 1.5; }
-        button { background-color: #333; color: #fff; border: 2px solid #fff; border-radius: 5px; padding: 15px 25px; font-size: 20px; cursor: pointer; transition: 0.2s; font-weight: bold; margin-top:10px; }
-        button:hover { background-color: #555; transform: scale(1.05); }
-        #mic-btn { background-color: #aa0000; display: none; width: 80%; max-width: 400px; margin: 0 auto; }
-        #mic-btn:hover { background-color: #cc0000; }
-        #status-text { margin-top: 15px; color: #ffcc00; font-size: 16px; font-weight: bold; text-align: center; height: 25px;}
-
-        /* 🎤 ④ マイクオーバーレイ（Ver.7の完璧なシステムを採用） */
-        #mic-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 1000; flex-direction: column; justify-content: center; align-items: center; }
-        #mic-listening-text { color: #ff5555; font-size: 40px; font-weight: bold; margin-bottom: 30px; animation: blink 1s infinite alternate; }
-        @keyframes blink { 0% { opacity: 1; } 100% { opacity: 0.3; } }
-        #player-message-large { border: 4px solid #4da6ff; border-radius: 15px; padding: 40px; background-color: rgba(77, 166, 255, 0.2); text-align: center; display: none; width: 80%; max-width: 500px; box-shadow: 0 0 30px rgba(77, 166, 255, 0.5); }
-        #player-name-large { color: #4da6ff; font-weight: bold; font-size: 24px; display: block; margin-bottom: 15px; }
-        #player-text-large { font-size: 50px; font-weight: bold; color: #fff; line-height: 1.2; }
-        #judge-result-large { font-size: 50px; font-weight: bold; margin-top: 30px; text-shadow: 0 0 10px #000; }
+        /* 暗転マイク待機用オーバーレイ */
+        #mic-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 50;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
 
-    <!-- 🌟 スタート画面 -->
-    <div id="start-screen" class="screen active">
-        <h1 style="color:#00ffcc; font-size:50px; text-shadow: 0 0 20px #00ffcc; margin-bottom: 50px;">Eigo DE Quest</h1>
-        <button onclick="startCinematic()">▶ 冒険をはじめる</button>
+<div id="game-container">
+    <div id="mic-overlay" class="hidden"></div>
+
+    <div id="speech-window" class="hidden">
+        <div id="speech-user">PLAYER VOICE</div>
+        <div id="speech-text">（聴き取り中...）</div>
     </div>
 
-    <!-- 🎬 ① シネマティックオープニング -->
-    <div id="cinematic-screen" class="screen">
-        <div class="crawl-container">
-            <div id="crawl-text" class="crawl-text"></div>
-        </div>
-        <button style="position:absolute; bottom:30px; right:30px; font-size:16px; padding:10px;" onclick="showNameEntry()">Skip ⏭</button>
+    <div id="login-screen" class="screen">
+        <h2>Eigo DE Quest</h2>
+        <p>この ぼうけんで あなたが よばれたい なまえ（ハンドルネーム）を おしえてね！</p>
+        <input type="text" id="username-input" placeholder="なまえを入力..." maxlength="12">
+        <button onclick="saveName()">ぼうけんをはじめる</button>
     </div>
 
-    <!-- 📝 ② ログイン＆免責プロローグ -->
-    <div id="name-entry-screen" class="screen">
-        <h2 style="color:#fff; margin-bottom:30px;">このぼうけんで あなたがよばれたい<br>なまえ（ハンドルネーム）をおしえてね！</h2>
-        <input type="text" id="player-name-input" placeholder="名前を入力">
-        <br>
-        <button onclick="saveNameAndShowDisclaimer()">決定！</button>
-        
-        <div id="disclaimer-area" class="disclaimer" style="display:none;">
-            <h3 style="color:#ffcc00; margin-top:0;">【ディレクターからの約束】</h3>
-            <p>これは進化と実験のフリーゲームである。</p>
-            <p>データが消えても笑顔でやり直し、</p>
-            <p>負けても翌日全回復するシステムだ。</p>
-            <button onclick="startGame()" style="margin-top:20px; background-color:#00ffcc; color:#000;">いざ、冒険の世界へ！</button>
-        </div>
+    <div id="disclaimer-screen" class="screen hidden">
+        <h2>⚠️ ぼうけんしゃへのお約束事</h2>
+        <p style="text-align: left; font-size: 1rem;">
+            ・これは進化と実験をくりかえすフリーゲームである！<br><br>
+            ・データが消えたり、画像がちょっとブレたりしても、笑顔でやり直せる広い心を持とう！<br><br>
+            ・もし時間切れで負けても、翌朝には元気に全回復して戻ってこれるから安心しよう！
+        </p>
+        <button onclick="acceptDisclaimer()">笑顔で約束する</button>
     </div>
 
-    <!-- 🌳 ③ 本番ゲーム画面 -->
-    <div id="game-screen" class="screen">
-        <div id="game-screen-container">
-            <div id="image-placeholder">【背景：都会の部屋】</div>
-            
-            <div id="message-window">
-                <span id="speaker-name">システム</span>
-                <span id="message-text">都会の朝。枕元に見覚えのない地図がある...「Go to the forest.」</span>
-            </div>
-            
-            <button id="next-btn" onclick="nextScene()">次へ ▼</button>
-            <button id="mic-btn" onclick="startMic()">🎤 ボタンを押して英語を叫ぶ！</button>
-            <div id="status-text"></div>
+    <div id="story-screen" class="screen hidden" style="background: rgba(0,0,0,0.4);">
+        <div id="msg-window">
+            <div id="story-text"></div>
+            <button id="story-btn" onclick="nextStory()" style="float: right; margin-top: 10px; padding: 5px 15px; font-size: 1rem;">つぎへ</button>
         </div>
     </div>
 
-    <!-- 🎤 ④ マイクオーバーレイ（Ver.7の完璧なシステム） -->
-    <div id="mic-overlay">
-        <div id="mic-listening-text">🎤 今、話してください！</div>
-        <div id="player-message-large">
-            <span id="player-name-large">マスター（あなた）</span>
-            <span id="player-text-large"></span>
-        </div>
-        <div id="judge-result-large"></div>
+    <div id="character-layer" class="hidden">
+        <img id="char-img" src="" alt="character">
     </div>
+
+    <button id="help-btn" class="hidden" onclick="triggerPicoHelp()" style="position: absolute; right: 20px; top: 20px; z-index: 110; background: #ff3366; color: white;">💡 助けてピコ！</button>
+    <div id="pico-help-window" class="screen hidden" style="z-index: 120; background: rgba(0,0,0,0.9);">
+        <h2 style="color: #ff3366;">💡 ピコの緊急翻訳・ヒント</h2>
+        <p id="pico-help-text" style="font-size: 1.4rem;"></p>
+        <button onclick="closePicoHelp()">戻る</button>
+    </div>
+
+    <div id="tips-screen" class="screen hidden">
+        <h2 style="font-size: 1.2rem; color: #aaa;">📡 次元回線 安定化中...（15秒休憩室）</h2>
+        <h3 id="tips-title" style="color: var(--primary-color);">コングのヒミツ</h3>
+        <p id="tips-text">コングの体重は、実はリンゴ3000個分。でも、バナナのほうが好きらしいよ。</p>
+        <div class="progress-bar"><div id="tips-progress" class="progress-fill"></div></div>
+    </div>
+</div>
 
 <script>
-    // --- 進行・データ管理 ---
-    let playerName = "";
-    let currentScene = 0;
-    
-    // 🎬 オープニング演出の開始
-    function startCinematic() {
-        document.getElementById('start-screen').classList.remove('active');
-        document.getElementById('cinematic-screen').classList.add('active');
-        
-        // スターウォーズ風の重厚なテキスト
-        const text = "The world is closed...\n\n言葉を失った世界。\n\n人々は繋がりを忘れ、\n孤独な闇に包まれた。\n\nしかし、まだ希望はある。\n\n君の「声」が、\n世界を開く鍵となる——。";
-        document.getElementById('crawl-text').innerText = text;
-        
-        // 12秒後に自動で名前入力画面へ
-        setTimeout(() => {
-            if(document.getElementById('cinematic-screen').classList.contains('active')) {
-                showNameEntry();
-            }
-        }, 12000); 
+    // ゲーム状態管理
+    let gameState = {
+        username: "",
+        storyStep: 0,
+        picoHelpStage: 0,
+        picoTimer: null
+    };
+
+    // ワクワクTIPSデータ
+    const tipsList = [
+        { title: "ピコの裏設定", text: "ピコの頭のアンテナは、実は美味しいカレーの電波を感知すると激しく回転する仕組みなんだ。" },
+        { title: "コングの体重", text: "コングの体重はリンゴ3000個分！でも、リンゴよりバナナのほうが圧倒的に好きらしい。" },
+        { title: "この世界の方言", text: "この世界のモンスターたちは、文法がめちゃくちゃでも、勢いとパッションが伝われば大満足して通してくれるよ！" }
+    ];
+
+    // オーディオ再生関数（ローカルアセット呼び出し）
+    function playAudio(filename) {
+        const audio = new Audio(`sounds/${filename}`);
+        audio.play().catch(e => console.log("Audio play blocked or missing:", filename));
     }
 
-    // 📝 名前入力へ
-    function showNameEntry() {
-        document.getElementById('cinematic-screen').classList.remove('active');
-        document.getElementById('name-entry-screen').classList.add('active');
-    }
-
-    // 免責事項の表示
-    function saveNameAndShowDisclaimer() {
-        const input = document.getElementById('player-name-input').value;
-        if(input.trim() === "") { alert("名前を入力してね！"); return; }
-        playerName = input;
-        localStorage.setItem("EigoQuest_PlayerName", playerName);
-        document.getElementById('disclaimer-area').style.display = "block";
-    }
-
-    // 🌳 本編ゲームスタート
-    function startGame() {
-        document.getElementById('name-entry-screen').classList.remove('active');
-        document.getElementById('game-screen').classList.add('active');
-        currentScene = 1;
-        updateScene();
-    }
-
-    // --- ゲームのシーン管理 ---
-    const speakerEl = document.getElementById("speaker-name");
-    const textEl = document.getElementById("message-text");
-    const nextBtn = document.getElementById("next-btn");
-    const micBtn = document.getElementById("mic-btn");
-    const placeholderEl = document.getElementById("image-placeholder");
-    const statusEl = document.getElementById("status-text");
-    
-    // マイク関連UI
-    const overlayEl = document.getElementById("mic-overlay");
-    const listeningTextEl = document.getElementById("mic-listening-text");
-    const playerWindowLargeEl = document.getElementById("player-message-large");
-    const playerNameLargeEl = document.getElementById("player-name-large");
-    const playerTextLargeEl = document.getElementById("player-text-large");
-    const judgeResultLargeEl = document.getElementById("judge-result-large");
-
-    function nextScene() {
-        currentScene++;
-        updateScene();
-    }
-
-    function updateScene() {
-        nextBtn.style.display = "inline-block";
-        micBtn.style.display = "none";
-        statusEl.innerText = "";
-
-        switch (currentScene) {
-            case 1:
-                // 背景グラデーション移動
-                placeholderEl.style.background = "linear-gradient(to bottom, #444, #1a3a1a)";
-                placeholderEl.innerText = "【景色が都会➔郊外➔田舎➔森へと変わっていく】";
-                speakerEl.innerText = "システム";
-                textEl.innerText = "地図が示す不思議な森の入り口へ向かう...景色がグラデーションのように移り変わる。";
-                break;
-            case 2:
-                // ピコの発見
-                placeholderEl.style.background = "#1a3a1a"; // 深い森の色
-                placeholderEl.innerText = "【画像：pico_08.png (電池切れのピコ)】";
-                speakerEl.innerText = "システム";
-                textEl.innerHTML = "森の広場で、電池切れで眠っている可愛いロボットを見つけた。<br><br><b>Say 'Hello'!（マイクで叫んで起動させよう！）</b>";
-                nextBtn.style.display = "none";
-                micBtn.style.display = "inline-block";
-                setupMic(["hello", "はろー", "pico", "ピコ", "ぴこ", "school", "pickle"], 3); 
-                break;
-            case 3:
-                placeholderEl.innerText = "【画像：pico_02.png (大喜びのピコ)】";
-                speakerEl.innerText = "ピコ";
-                textEl.innerText = `「天才じゃない！？声を聞かせてくれてありがとう！ボクはピコ！キミはボクの『マスター』だね！」`;
-                break;
-            case 4:
-                // コング出現
-                placeholderEl.style.background = "#3a1a1a"; // 危険な色
-                placeholderEl.innerText = "【画像：kong_10.png (威嚇するコング)】\n※地鳴りの音";
-                speakerEl.innerText = "コング (大怪獣)";
-                textEl.innerText = "「WHERE ARE YOU FROM!? (お前はどこから来た！？)」";
-                break;
-            case 5:
-                placeholderEl.innerText = "【画像：pico_01.png】";
-                speakerEl.innerText = "ピコ";
-                textEl.innerText = "「マスター！ビビらずに 'Japan' って叫ぶんだ！」";
-                nextBtn.style.display = "none";
-                micBtn.style.display = "inline-block";
-                setupMic(["japan", "じゃぱん", "ジャパン"], 6); 
-                break;
-            case 6:
-                placeholderEl.innerText = "【画像：kong_06.png (大号泣するコング)】";
-                speakerEl.innerText = "コング";
-                textEl.innerText = "「俺の外見を見て逃げ出さずに答えてくれた...！！(滝のような涙)」";
-                break;
-            case 7:
-                placeholderEl.innerText = "【画像：kong_01.png】";
-                speakerEl.innerText = "コング";
-                textEl.innerText = "「What's your name? (お前の名前はなんだ？)」\n※マイクで自分の名前を教えてあげよう！";
-                nextBtn.style.display = "none";
-                micBtn.style.display = "inline-block";
-                recognition.lang = 'ja-JP'; // 名前は日本語
-                setupMic(["ANY"], 8); 
-                break;
-            case 8:
-                placeholderEl.innerText = "【画像：kong_02.png (大喜びのコング)】";
-                speakerEl.innerText = "コング";
-                textEl.innerText = `「${playerName}!? Are you my friend!? (俺の友達か！？)」`;
-                nextBtn.style.display = "none";
-                micBtn.style.display = "inline-block";
-                recognition.lang = 'en-US'; 
-                setupMic(["yes", "いえす", "イエス"], 9); 
-                break;
-            case 9:
-                // クリア
-                placeholderEl.style.background = "#daa520"; // 黄金色
-                placeholderEl.innerText = "【感動のファンファーレ】";
-                speakerEl.innerText = "システム";
-                textEl.innerHTML = "コングが仲間になった！<br><br><b>第1章 シネマティック完全版 クリア！！</b>";
-                nextBtn.style.display = "none";
-                micBtn.style.display = "none";
-                break;
+    // ① ログイン処理
+    window.onload = function() {
+        const savedName = localStorage.getItem("edq_username");
+        if(savedName) {
+            document.getElementById("username-input").value = savedName;
         }
-    }
+    };
 
-    // --- 🎤 音声認識と判定ロジック (Ver.7 エラー完全回避・forループ仕様) ---
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US'; 
-    recognition.interimResults = false;
-
-    let targetWordsArray = [];
-    let nextSceneNum = 0;
-
-    function setupMic(wordsArray, next) {
-        targetWordsArray = wordsArray; 
-        nextSceneNum = next;
-    }
-
-    function startMic() {
-        overlayEl.style.display = "flex";
-        listeningTextEl.style.display = "block";
-        playerWindowLargeEl.style.display = "none";
-        judgeResultLargeEl.innerText = "";
-        recognition.start();
-    }
-
-    recognition.onresult = function(event) {
-        // ★Ver.7の最強安全仕様！絶対にフリーズさせないforループでの取り出し
-        let transcript = "";
-        for (let res of event.results) {
-            for (let alt of res) {
-                transcript = alt.transcript;
-                break;
-            }
-            break;
+    function saveName() {
+        const nameInput = document.getElementById("username-input").value.trim();
+        if(!nameInput) {
+            alert("名前に魂を込めよう！空欄にはできないよ！");
+            return;
         }
+        playAudio("system_click.mp3");
+        gameState.username = nameInput;
+        localStorage.setItem("edq_username", nameInput);
         
-        listeningTextEl.style.display = "none";
-        playerWindowLargeEl.style.display = "block";
+        document.getElementById("login-screen").classList.add("hidden");
+        document.getElementById("disclaimer-screen").classList.remove("hidden");
+    }
+
+    function acceptDisclaimer() {
+        playAudio("system_click.mp3");
+        document.getElementById("disclaimer-screen").classList.add("hidden");
+        document.getElementById("story-screen").classList.remove("hidden");
+        startStory();
+    }
+
+    // ② 日常からのグラデーション移動プロット
+    const storySteps = [
+        { text: "都会の喧騒の中、あなたの部屋に静かな朝が訪れる。枕元には、見慣れない「古びた地図」と、光を放つメッセージプレートが置かれていた。", bg: "images/bg_room.jpg" },
+        { text: "プレートには、ハッキリとこう刻まれている。――『Go to the forest.（森へ向かえ）』", bg: "images/bg_room.jpg" },
+        { text: "あなたは導かれるように家を飛び出した。都会のビル群を抜け、景色は次第に緑に包まれていく。", bg: "images/bg_suburb.jpg" },
+        { text: "アスファルトが途切れ、土の匂いが強くなる。田舎道をひたすら進み、ついにその場所へ辿り着いた。", bg: "images/bg_country.jpg" },
+        { text: "ここが、すべての始まりとなる「不思議な森」の入り口……。", bg: "images/bg_forest.jpg" },
+        { text: "森の奥の広場に、ポツンと何かが倒れている。あれは……ブリキのマスコットロボット？どうやら完全に電源が切れて眠っているようだ。", bg: "images/bg_forest.jpg", char: "images/pico_08.png" },
+        { text: "ロボットの胸には、大きくこう書かれている。――【Say 'Hello' to Wake Me Up!】", bg: "images/bg_forest.jpg", char: "images/pico_08.png", action: "startMicMission" }
+    ];
+
+    function startStory() {
+        gameState.storyStep = 0;
+        showStep();
+    }
+
+    function showStep() {
+        const step = storySteps[gameState.storyStep];
+        document.getElementById("game-container").style.backgroundImage = `url('${step.bg}')`;
+        document.getElementById("story-text").innerText = step.text.replace("{name}", gameState.username);
         
-        playerNameLargeEl.innerText = playerName;
-        playerTextLargeEl.innerText = `「${transcript}」`;
-        
-        // 大掃除処理
-        let cleanedText = transcript.toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶｱ-ﾝﾞﾟ一-龠]/g, ""); 
-        
-        if (targetWordsArray.includes("ANY")) {
-            // 名前更新処理
-            judgeResultLargeEl.style.color = "#ffcc00";
-            judgeResultLargeEl.innerText = "🌟 大成功！！";
-            setTimeout(closeOverlayAndProceed, 2000);
+        if(step.char) {
+            document.getElementById("character-layer").classList.remove("hidden");
+            document.getElementById("char-img").src = step.char;
         } else {
-            let isHit = targetWordsArray.some(word => cleanedText.includes(word));
-            if (isHit) {
-                judgeResultLargeEl.style.color = "#ffcc00";
-                judgeResultLargeEl.innerText = "🌟 大成功！！";
-                setTimeout(closeOverlayAndProceed, 2500); 
-            } else {
-                judgeResultLargeEl.style.color = "#ff5555";
-                judgeResultLargeEl.innerText = "❌ 辞書にない言葉みたい！もう一度！";
-                setTimeout(closeOverlayAndRetry, 2500);
-            }
+            document.getElementById("character-layer").classList.add("hidden");
         }
-    };
 
-    recognition.onerror = function(event) {
-        listeningTextEl.style.display = "none";
-        judgeResultLargeEl.style.color = "#ff5555";
-        judgeResultLargeEl.innerText = "❌ うまく聞き取れませんでした...";
-        playerWindowLargeEl.style.display = "block";
-        playerNameLargeEl.innerText = "システム";
-        playerTextLargeEl.innerText = "「音声が検出できませんでした」";
-        setTimeout(closeOverlayAndRetry, 2500);
-    };
-
-    function closeOverlayAndProceed() {
-        overlayEl.style.display = "none";
-        currentScene = nextSceneNum;
-        updateScene();
+        if(step.action === "startMicMission") {
+            document.getElementById("story-btn").innerText = "マイクを起動する";
+        } else {
+            document.getElementById("story-btn").innerText = "つぎへ";
+        }
     }
 
-    function closeOverlayAndRetry() {
-        overlayEl.style.display = "none";
-        statusEl.innerText = "もう一度「🎤 ボタンを押して」叫んでみて！";
+    function nextStory() {
+        playAudio("system_click.mp3");
+        const currentStep = storySteps[gameState.storyStep];
+        
+        if(currentStep.action === "startMicMission") {
+            document.getElementById("story-screen").classList.add("hidden");
+            initiateVoiceRecognition();
+            return;
+        }
+
+        gameState.storyStep++;
+        if(gameState.storyStep < storySteps.length) {
+            showStep();
+        }
     }
 
+    // ③ ピコの起動（音声認識ミッション） ＆ 大掃除ロジック
+    function initiateVoiceRecognition() {
+        // マイク起動時の暗転・上部半透明ウィンドウの絶対ルール適用
+        document.getElementById("mic-overlay").classList.remove("hidden");
+        const speechWin = document.getElementById("speech-window");
+        speechWin.classList.remove("hidden");
+        document.getElementById("speech-user").innerText = `${gameState.username.toUpperCase()}'S VOICE`;
+        document.getElementById("speech-text").innerText = "Say 'Hello' ! （聴き取り中...）";
+        document.getElementById("help-btn").classList.remove("hidden");
+
+        // ピコの3段階サポートタイマー開始
+        gameState.picoHelpStage = 0;
+        startPicoTimer();
+
+        // Web Speech API
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            // API非対応時は安全装置として15秒休憩室（ワクワクTIPS）へ流す
+            trigger15SecRoom("ブラウザが音声認識に対応していないみたい！裏技回線へ接続します。");
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.start();
+
+        recognition.onresult = function(event) {
+            let resultText = event.results[0][0].transcript;
+            
+            // 【大掃除ロジック】すべて小文字化、記号排除
+            let cleanText = resultText.toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶー]/g, "");
+            
+            document.getElementById("speech-text").innerText = `「 ${resultText} 」`;
+
+            // 【想定回答（カタカナ混入くじ引き）】
+            const validAnswers = ["hello", "ハロー", "はろー", "ハロお"];
+
+            if (validAnswers.some(ans => cleanText.includes(ans))) {
+                // ミッションクリア
+                clearTimeout(gameState.picoTimer);
+                recognition.stop();
+                missionSuccess();
+            } else {
+                // 理解不能時のリretry誘導（プライド保護）
+                document.getElementById("speech-text").innerText = `「${resultText}」…ピコの辞書に入ってない新しい単語だったみたい！ポンコツでごめんね！もう一度言ってみて！`;
+                setTimeout(() => { recognition.start(); }, 3000);
+            }
+        };
+
+        recognition.onerror = function(event) {
+            console.log("Speech recognition error", event.error);
+            // エラー時もリトライ誘導
+            setTimeout(() => { try { recognition.start(); } catch(e){} }, 2000);
+        };
+    }
+
+    // ピコの3段階サポート（時間的猶予の確保）
+    function startPicoTimer() {
+        gameState.picoTimer = setTimeout(() => {
+            gameState.picoHelpStage = 1; // ① 2秒間ウンウンと頷いて待機（サイレント）
+            
+            gameState.picoTimer = setTimeout(() => {
+                gameState.picoHelpStage = 2; // ② 軽いヒント
+                console.log("ピコヒント段階2");
+                
+                gameState.picoTimer = setTimeout(() => {
+                    gameState.picoHelpStage = 3; // ③ 方向性を絞るヒント
+                    console.log("ピコヒント段階3");
+                    
+                    gameState.picoTimer = setTimeout(() => {
+                        gameState.picoHelpStage = 4; // ④ 明確な答えを誘導
+                        console.log("ピコヒント段階4");
+                    }, 4000);
+                }, 3000);
+            }, 2000);
+        }, 2000);
+    }
+
+    // 💡 助けてピコ！ボタンが押されたとき
+    function triggerPicoHelp() {
+        playAudio("system_click.mp3");
+        let helpMsg = "画面に向かって元気に『ハロー！』って言ってみよう！";
+        
+        if (gameState.picoHelpStage === 2) {
+            helpMsg = "💡 ピコ：「あいつ、出会い頭のあいさつについて聞いてるよ！」";
+        } else if (gameState.picoHelpStage === 3) {
+            helpMsg = "💡 ピコ：「世界で一番有名な挨拶、英語で『ハ』から始まる4文字の言葉だよ！」";
+        } else if (gameState.picoHelpStage >= 4) {
+            helpMsg = "💡 ピコ：「『Hello（ハロー）』って言ってみよう！ピコがシャキッと起きるよ！」";
+        }
+
+        document.getElementById("pico-help-text").innerText = helpMsg;
+        document.getElementById("pico-help-window").classList.remove("hidden");
+    }
+
+    function closePicoHelp() {
+        document.getElementById("pico-help-window").classList.add("hidden");
+    }
+
+    // 大成功演出
+    function missionSuccess() {
+        document.getElementById("mic-overlay").classList.add("hidden");
+        document.getElementById("help-btn").classList.add("hidden");
+        
+        playAudio("system_wakeup.mp3");
+        
+        // ピコ起動：立ち絵を pico_01.png（Normal姿）へ切り替え
+        document.getElementById("char-img").src = "images/pico_01.png";
+        
+        // ハリウッドボイス再生（通信ラグ0.0秒）
+        setTimeout(() => {
+            playAudio("pico_wakeup_voice.mp3");
+        }, 500);
+
+        // テキストウィンドウ復活・全肯定リアクション
+        document.getElementById("speech-window").classList.add("hidden");
+        document.getElementById("story-screen").classList.remove("hidden");
+        document.getElementById("story-text").innerHTML = `<span style="color:var(--primary-color); font-weight:bold;">ピコ</span>：「マスター！天才じゃない！？起こしてくれてありがとう！今日からボクが君の最強の従者だよ！」<br><br><span style="color:#aaa;">（ピコが仲間に加わった！ 第1章・クリア！）</span>`;
+        document.getElementById("story-btn").innerText = "第2章へ進む（未実装）";
+        document.getElementById("story-btn").onclick = function() {
+            alert("第1章クリアおめでとう！次の章のアップデートをお楽しみに！");
+        };
+    }
+
+    // ⑤ API満杯時・エラー時の「15秒休憩室（ワクワクTIPSシステム）」
+    function trigger15SecRoom(reason) {
+        document.getElementById("mic-overlay").classList.add("hidden");
+        document.getElementById("speech-window").classList.add("hidden");
+        document.getElementById("story-screen").classList.add("hidden");
+        
+        // ランダムでTIPSを選択
+        const randomTip = tipsList[Math.floor(Math.random() * tipsList.length)];
+        document.getElementById("tips-title").innerText = randomTip.title;
+        document.getElementById("tips-text").innerText = randomTip.text;
+        
+        document.getElementById("tips-screen").classList.remove("hidden");
+        
+        let progress = 0;
+        const progressFill = document.getElementById("tips-progress");
+        
+        const interval = setInterval(() => {
+            progress += (100 / 15);
+            progressFill.style.width = `${progress}%`;
+            if (progress >= 100) {
+                clearInterval(interval);
+                // 15秒経ったら退却システムとして安全に朝の部屋に戻す
+                retreatToRoom();
+            }
+        }, 1000);
+    }
+
+    // 退却システム（朝へ戻して体力全回復・自学自習誘導）
+    function retreatToRoom() {
+        document.getElementById("tips-screen").classList.add("hidden");
+        document.getElementById("story-screen").classList.remove("hidden");
+        
+        document.getElementById("game-container").style.backgroundImage = "url('images/bg_room.jpg')";
+        document.getElementById("character-layer").classList.add("hidden");
+        
+        document.getElementById("story-text").innerHTML = `【退却ーー！】<br>ふう、一旦あたまを冷やして朝の部屋に戻ってきたぞ。体力が全回復した！<br><br><span style="color:var(--primary-color);">💡ピコからの必勝アドバイス</span>：<br>「次は『Hello』の言葉が必要みたいだ。発音を確認したり、辞書で調べてからもう一回森へ行こう！」`;
+        document.getElementById("story-btn").innerText = "もう一度森へ行く";
+        document.getElementById("story-btn").onclick = function() {
+            location.reload(); // 簡単リトライ
+        };
+    }
 </script>
 </body>
 </html>
