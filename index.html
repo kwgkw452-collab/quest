@@ -2,12 +2,14 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Eigo DE Quest - 第1章</title>
+    <title>Eigo DE Quest - 第1章 (Ver.4)</title>
     <style>
-        /* ドラクエ風のシンプルなUIスタイル */
-        body { background-color: #111; color: #eee; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 50px; margin: 0; }
-        #game-screen { width: 90%; max-width: 600px; border: 3px solid #eee; border-radius: 10px; padding: 20px; background-color: #000; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
+        /* ★見た目を大変更！背景を紺色に、枠線をエメラルドグリーンにしました！★ */
+        body { background-color: #0b1d28; color: #eee; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 30px; margin: 0; }
+        #game-screen { width: 90%; max-width: 600px; border: 4px solid #00ffcc; border-radius: 10px; padding: 20px; background-color: #000; box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); }
         
+        .version-tag { color: #00ffcc; font-size: 24px; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 10px #00ffcc; }
+
         /* 画像が入る予定の空枠 */
         #image-placeholder { height: 250px; border: 2px dashed #555; display: flex; justify-content: center; align-items: center; color: #888; margin-bottom: 20px; font-size: 14px; background-color: #222;}
         
@@ -61,6 +63,9 @@
     </style>
 </head>
 <body>
+
+    <!-- ★更新されたかが一目でわかるバージョンタグ！★ -->
+    <div class="version-tag">★ テスト Ver.4 (エメラルドグリーン版) ★</div>
 
     <div id="game-screen">
         <div id="image-placeholder">【背景：都会の部屋】</div>
@@ -211,7 +216,7 @@
         }
 
         recognition.onresult = function(event) {
-            // ★【今度こそ確実に修正！！】 ちゃんと  を入れました！！
+            // ★【今度こそ確実に修正！！】 0番目の箱の0番目のデータを示す  を入れました！！
             let transcript = event.results.transcript;
             
             listeningTextEl.style.display = "none";
