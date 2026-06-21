@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Eigo DE Quest - 第1章 (Ver.5)</title>
+    <title>Eigo DE Quest - 第1章 (Ver.6)</title>
     <style>
         /* 見た目を大変更！背景を紺色に、枠線をエメラルドグリーンに */
         body { background-color: #0b1d28; color: #eee; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 30px; margin: 0; }
@@ -50,7 +50,7 @@
 </head>
 <body>
 
-    <div class="version-tag">★ テスト Ver.5 (完全修正版) ★</div>
+    <div class="version-tag">★ テスト Ver.6 (最終到達版) ★</div>
 
     <div id="game-screen">
         <div id="image-placeholder">【背景：都会の部屋】</div>
@@ -70,7 +70,7 @@
 
     <!-- ドカンと出る全画面マイクオーバーレイ -->
     <div id="mic-overlay">
-        <div id="mic-listening-text">🎤 今、話してください！（※初回のみマイク許可が出ます）</div>
+        <div id="mic-listening-text">🎤 今、話してください！</div>
         
         <div id="player-message-large">
             <span id="player-name-large">マスター（あなた）</span>
@@ -200,17 +200,17 @@
         }
 
         recognition.onresult = function(event) {
-            // ★【完全修正】 AIの書き忘れにより「undefined」になっていた原因、  を絶対に追加しました！！！
-            let transcript = event.results.transcript;
+            // ★【絶対確実な修正】記号の消滅を防ぐため、別の書き方（ item(0) ）を採用しました！
+            let transcript = event.results.item(0).item(0).transcript;
             
             listeningTextEl.style.display = "none";
             playerWindowLargeEl.style.display = "block";
             
-            // ローカル保存データの大掃除処理
             playerNameLargeEl.innerText = (playerName && playerName !== "undefined") ? playerName : "マスター（あなた）";
             playerTextLargeEl.innerText = `「${transcript}」`;
             
-            let cleanedText = transcript.toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶｱ-ﾝﾞﾟ一-龠]/g, ""); // 大掃除ロジック
+            // 大文字・小文字の区別や記号による判定エラーを防ぐための大掃除処理
+            let cleanedText = transcript.toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶｱ-ﾝﾞﾟ一-龠]/g, ""); 
             
             if (targetWordsArray.includes("ANY")) {
                 playerName = transcript;
