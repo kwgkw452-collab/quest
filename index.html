@@ -26,12 +26,12 @@
         /* 状態・判定結果表示（通常画面用） */
         #status-text { margin-top: 15px; color: #ffcc00; font-size: 16px; font-weight: bold; text-align: center; height: 25px;}
 
-        /* ★超絶進化：マイク入力と結果をデカデカと表示する全画面オーバーレイ */
+        /* ★ドカンと出る全画面マイクオーバーレイ */
         #mic-overlay {
             display: none; 
             position: fixed; 
             top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0, 0, 0, 0.85); /* 背景を暗くして集中させる */
+            background: rgba(0, 0, 0, 0.85); 
             z-index: 1000; 
             flex-direction: column; 
             justify-content: center; 
@@ -39,7 +39,7 @@
         }
         #mic-listening-text {
             color: #ff5555; font-size: 40px; font-weight: bold; margin-bottom: 30px;
-            animation: blink 1s infinite alternate; /* 点滅アニメーション */
+            animation: blink 1s infinite alternate;
         }
         @keyframes blink {
             0% { opacity: 1; }
@@ -63,10 +63,8 @@
 <body>
 
     <div id="game-screen">
-        <!-- 背景やキャラクター画像が入るエリア -->
         <div id="image-placeholder">【背景：都会の部屋】</div>
         
-        <!-- NPCメッセージエリア -->
         <div id="message-window">
             <span id="speaker-name">システム</span>
             <span id="message-text">都会の朝。枕元に見覚えのない地図がある...「Go to the forest.」</span>
@@ -80,18 +78,15 @@
     
     <div id="status-text"></div>
 
-    <!-- ★ドカンと出る全画面マイクオーバーレイ -->
+    <!-- ドカンと出る全画面マイクオーバーレイ -->
     <div id="mic-overlay">
-        <!-- 聞き取り中のサイン -->
         <div id="mic-listening-text">🎤 今、話してください！</div>
         
-        <!-- デカデカと出る生徒の言葉 -->
         <div id="player-message-large">
             <span id="player-name-large">マスター（あなた）</span>
             <span id="player-text-large"></span>
         </div>
         
-        <!-- 判定結果（大成功！など） -->
         <div id="judge-result-large"></div>
     </div>
 
@@ -116,7 +111,7 @@
         const playerTextLargeEl = document.getElementById("player-text-large");
         const judgeResultLargeEl = document.getElementById("judge-result-large");
 
-        // 音声認識の設定 (Web Speech API)
+        // 音声認識の設定
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
         recognition.lang = 'en-US'; 
@@ -208,19 +203,17 @@
         }
 
         function startMic() {
-            // オーバーレイを表示して「今話して！」とデカデカ伝える
             overlayEl.style.display = "flex";
             listeningTextEl.style.display = "block";
             playerWindowLargeEl.style.display = "none";
             judgeResultLargeEl.innerText = "";
-            
             recognition.start();
         }
 
         recognition.onresult = function(event) {
+            // ★ AIの致命的なミスを修正！ここで正しく言葉を取り出します！
             let transcript = event.results.transcript;
             
-            // 話し終わったら「今話して！」の文字を消して、デカデカ窓を出す
             listeningTextEl.style.display = "none";
             playerWindowLargeEl.style.display = "block";
             
@@ -241,7 +234,7 @@
                 if (isHit) {
                     judgeResultLargeEl.style.color = "#ffcc00";
                     judgeResultLargeEl.innerText = "🌟 大成功！！";
-                    setTimeout(closeOverlayAndProceed, 2500); // 結果を眺める時間を2.5秒に設定
+                    setTimeout(closeOverlayAndProceed, 2500); 
                 } else {
                     judgeResultLargeEl.style.color = "#ff5555";
                     judgeResultLargeEl.innerText = "❌ 辞書にない言葉みたい！もう一度！";
@@ -254,17 +247,18 @@
             listeningTextEl.style.display = "none";
             judgeResultLargeEl.style.color = "#ff5555";
             judgeResultLargeEl.innerText = "❌ うまく聞き取れませんでした...";
-            setTimeout(closeOverlayAndRetry, 2000);
+            playerWindowLargeEl.style.display = "block";
+            playerNameLargeEl.innerText = "システム";
+            playerTextLargeEl.innerText = "「音声が検出できませんでした」";
+            setTimeout(closeOverlayAndRetry, 2500);
         };
 
-        // 成功時にオーバーレイを閉じて次のシーンへ
         function closeOverlayAndProceed() {
             overlayEl.style.display = "none";
             currentScene = nextSceneNum;
             updateScene();
         }
 
-        // 失敗時にオーバーレイを閉じてリトライ
         function closeOverlayAndRetry() {
             overlayEl.style.display = "none";
             statusEl.innerText = "もう一度「🎤 ボタンを押して」叫んでみて！";
