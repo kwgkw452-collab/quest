@@ -2,18 +2,16 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Eigo DE Quest - 第1章 (Ver.4)</title>
+    <title>Eigo DE Quest - 第1章 (Ver.5)</title>
     <style>
-        /* ★見た目を大変更！背景を紺色に、枠線をエメラルドグリーンにしました！★ */
+        /* 見た目を大変更！背景を紺色に、枠線をエメラルドグリーンに */
         body { background-color: #0b1d28; color: #eee; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 30px; margin: 0; }
         #game-screen { width: 90%; max-width: 600px; border: 4px solid #00ffcc; border-radius: 10px; padding: 20px; background-color: #000; box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); }
         
         .version-tag { color: #00ffcc; font-size: 24px; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 10px #00ffcc; }
 
-        /* 画像が入る予定の空枠 */
         #image-placeholder { height: 250px; border: 2px dashed #555; display: flex; justify-content: center; align-items: center; color: #888; margin-bottom: 20px; font-size: 14px; background-color: #222;}
         
-        /* システム・NPC用のメッセージウィンドウ */
         #message-window { border: 2px solid #eee; border-radius: 5px; padding: 15px; min-height: 100px; position: relative; margin-bottom: 15px; }
         #speaker-name { color: #ffd700; font-weight: bold; font-size: 18px; margin-bottom: 10px; display: block; }
         #message-text { font-size: 18px; line-height: 1.5; }
@@ -25,54 +23,41 @@
         #mic-btn { background-color: #aa0000; display: none; width: 80%; max-width: 400px; }
         #mic-btn:hover { background-color: #cc0000; }
 
-        /* 状態・判定結果表示（通常画面用） */
         #status-text { margin-top: 15px; color: #ffcc00; font-size: 16px; font-weight: bold; text-align: center; height: 25px;}
 
-        /* ★ドカンと出る全画面マイクオーバーレイ */
+        /* ドカンと出る全画面マイクオーバーレイ */
         #mic-overlay {
-            display: none; 
-            position: fixed; 
-            top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0, 0, 0, 0.85); 
-            z-index: 1000; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0, 0, 0, 0.85); z-index: 1000; flex-direction: column; 
+            justify-content: center; align-items: center;
         }
         #mic-listening-text {
             color: #ff5555; font-size: 40px; font-weight: bold; margin-bottom: 30px;
             animation: blink 1s infinite alternate;
         }
-        @keyframes blink {
-            0% { opacity: 1; }
-            100% { opacity: 0.3; }
-        }
+        @keyframes blink { 0% { opacity: 1; } 100% { opacity: 0.3; } }
         
-        /* デカデカと出る生徒用の発話表示ウィンドウ */
         #player-message-large {
             border: 4px solid #4da6ff; border-radius: 15px; padding: 40px; 
-            background-color: rgba(77, 166, 255, 0.2); 
-            text-align: center; display: none; width: 80%; max-width: 500px;
+            background-color: rgba(77, 166, 255, 0.2); text-align: center; display: none; width: 80%; max-width: 500px;
             box-shadow: 0 0 30px rgba(77, 166, 255, 0.5);
         }
         #player-name-large { color: #4da6ff; font-weight: bold; font-size: 24px; display: block; margin-bottom: 15px; }
         #player-text-large { font-size: 50px; font-weight: bold; color: #fff; line-height: 1.2; }
         
-        /* デカデカ判定結果 */
         #judge-result-large { font-size: 50px; font-weight: bold; margin-top: 30px; text-shadow: 0 0 10px #000; }
     </style>
 </head>
 <body>
 
-    <!-- ★更新されたかが一目でわかるバージョンタグ！★ -->
-    <div class="version-tag">★ テスト Ver.4 (エメラルドグリーン版) ★</div>
+    <div class="version-tag">★ テスト Ver.5 (完全修正版) ★</div>
 
     <div id="game-screen">
         <div id="image-placeholder">【背景：都会の部屋】</div>
         
         <div id="message-window">
             <span id="speaker-name">システム</span>
-            <span id="message-text">都会の朝。枕元に見覚えのない地図がある...「Go to the forest.」</span>
+            <span id="message-text">都会の朝。枕元に見覚えのない地図がある...「Go to the forest.」<br><br><span style="color:#00ffcc; font-size:14px;">※下の「次へ」ボタンを押してストーリーを進めてください！</span></span>
         </div>
         
         <div id="controls">
@@ -85,7 +70,7 @@
 
     <!-- ドカンと出る全画面マイクオーバーレイ -->
     <div id="mic-overlay">
-        <div id="mic-listening-text">🎤 今、話してください！</div>
+        <div id="mic-listening-text">🎤 今、話してください！（※初回のみマイク許可が出ます）</div>
         
         <div id="player-message-large">
             <span id="player-name-large">マスター（あなた）</span>
@@ -108,7 +93,6 @@
         const placeholderEl = document.getElementById("image-placeholder");
         const statusEl = document.getElementById("status-text");
         
-        // オーバーレイ要素の取得
         const overlayEl = document.getElementById("mic-overlay");
         const listeningTextEl = document.getElementById("mic-listening-text");
         const playerWindowLargeEl = document.getElementById("player-message-large");
@@ -143,7 +127,7 @@
                     speakerEl.innerText = "システム";
                     textEl.innerHTML = "森の広場で、電池切れで眠っている可愛いロボットを見つけた。<br><br><b>Say 'Hello'!（マイクで叫んで起動させよう！）</b>";
                     nextBtn.style.display = "none";
-                    micBtn.style.display = "inline-block";
+                    micBtn.style.display = "inline-block"; // ここで初めてマイクボタンが出現！
                     setupMic(["hello", "はろー", "pico", "ピコ", "ぴこ", "school", "pickle", "peaco", "google"], 3); 
                     break;
                 case 3:
@@ -216,16 +200,17 @@
         }
 
         recognition.onresult = function(event) {
-            // ★【今度こそ確実に修正！！】 0番目の箱の0番目のデータを示す  を入れました！！
+            // ★【完全修正】 AIの書き忘れにより「undefined」になっていた原因、  を絶対に追加しました！！！
             let transcript = event.results.transcript;
             
             listeningTextEl.style.display = "none";
             playerWindowLargeEl.style.display = "block";
             
-            playerNameLargeEl.innerText = playerName ? playerName : "マスター（あなた）";
+            // ローカル保存データの大掃除処理
+            playerNameLargeEl.innerText = (playerName && playerName !== "undefined") ? playerName : "マスター（あなた）";
             playerTextLargeEl.innerText = `「${transcript}」`;
             
-            let cleanedText = transcript.toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶｱ-ﾝﾞﾟ一-龠]/g, "");
+            let cleanedText = transcript.toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶｱ-ﾝﾞﾟ一-龠]/g, ""); // 大掃除ロジック
             
             if (targetWordsArray.includes("ANY")) {
                 playerName = transcript;
