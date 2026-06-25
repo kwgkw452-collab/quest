@@ -1,481 +1,77 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eigo DE Quest - Chapter 1</title>
-    <style>
-        :root {
-            --primary-color: #ffcc00;
-            --bg-overlay: rgba(0, 0, 0, 0.7);
-        }
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #000;
-            color: #fff;
-            overflow: hidden;
-            user-select: none;
-        }
-        /* 劇場スタイル・背景レイヤー */
-        #game-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            transition: background-image 1.5s ease-in-out;
-        }
-        /* 各種画面の共通スタイル */
-        .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: var(--bg-overlay);
-            padding: 20px;
-            box-sizing: border-box;
-            text-align: center;
-        }
-        .hidden { display: none !important; }
-        
-        /* UIパーツ */
-        h1, h2 { color: var(--primary-color); text-shadow: 0 0 10px rgba(255,204,0,0.5); }
-        p { font-size: 1.2rem; line-height: 1.6; max-width: 600px; }
-        input[type="text"] {
-            padding: 12px 20px;
-            font-size: 1.2rem;
-            border: 2px solid var(--primary-color);
-            border-radius: 25px;
-            background: rgba(0,0,0,0.5);
-            color: #fff;
-            text-align: center;
-            outline: none;
-            margin-bottom: 20px;
-        }
-        button {
-            padding: 12px 30px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            background: var(--primary-color);
-            color: #000;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255,204,0,0.4);
-            transition: transform 0.2s, background 0.2s;
-        }
-        button:hover { transform: scale(1.05); background: #ffe066; }
-        
-        /* 絶対ルール：発話表示ウィンドウ（上部・半透明） */
-        #speech-window {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 85%;
-            max-width: 800px;
-            background: rgba(0, 0, 0, 0.75);
-            border: 2px solid var(--primary-color);
-            border-radius: 15px;
-            padding: 15px;
-            box-sizing: border-box;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
-        }
-        #speech-user { font-size: 0.9rem; color: var(--primary-color); margin-bottom: 5px; }
-        #speech-text { font-size: 1.6rem; font-weight: bold; color: #fff; }
-
-        /* キャラクター立ち絵レイヤー */
-        #character-layer {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            height: 60vh;
-            pointer-events: none;
-            transition: transform 0.5s;
-        }
-        #char-img { height: 100%; object-fit: contain; }
-
-        /* メッセージウィンドウ（下部） */
-        #msg-window {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 800px;
-            background: rgba(0,0,0,0.8);
-            border: 2px solid #fff;
-            border-radius: 10px;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        /* 15秒休憩室スタイル */
-        #tips-screen { background: #111; color: #fff; }
-        .progress-bar {
-            width: 80%;
-            max-width: 400px;
-            height: 10px;
-            background: #333;
-            border-radius: 5px;
-            margin-top: 20px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            width: 0%;
-            height: 100%;
-            background: var(--primary-color);
-            transition: width 1s linear;
-        }
-
-        /* 暗転マイク待機用オーバーレイ */
-        #mic-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 50;
-            pointer-events: none;
-        }
-    </style>
-</head>
-<body>
-
-<div id="game-container">
-    <div id="mic-overlay" class="hidden"></div>
-
-    <div id="speech-window" class="hidden">
-        <div id="speech-user">PLAYER VOICE</div>
-        <div id="speech-text">（聴き取り中...）</div>
-    </div>
-
-    <div id="login-screen" class="screen">
-        <h2>Eigo DE Quest</h2>
-        <p>この ぼうけんで あなたが よばれたい なまえ（ハンドルネーム）を おしえてね！</p>
-        <input type="text" id="username-input" placeholder="なまえを入力..." maxlength="12">
-        <button onclick="saveName()">ぼうけんをはじめる</button>
-    </div>
-
-    <div id="disclaimer-screen" class="screen hidden">
-        <h2>⚠️ ぼうけんしゃへのお約束事</h2>
-        <p style="text-align: left; font-size: 1rem;">
-            ・これは進化と実験をくりかえすフリーゲームである！<br><br>
-            ・データが消えたり、画像がちょっとブレたりしても、笑顔でやり直せる広い心を持とう！<br><br>
-            ・もし時間切れで負けても、翌朝には元気に全回復して戻ってこれるから安心しよう！
-        </p>
-        <button onclick="acceptDisclaimer()">笑顔で約束する</button>
-    </div>
-
-    <div id="story-screen" class="screen hidden" style="background: rgba(0,0,0,0.4);">
-        <div id="msg-window">
-            <div id="story-text"></div>
-            <button id="story-btn" onclick="nextStory()" style="float: right; margin-top: 10px; padding: 5px 15px; font-size: 1rem;">つぎへ</button>
-        </div>
-    </div>
-
-    <div id="character-layer" class="hidden">
-        <img id="char-img" src="" alt="character">
-    </div>
-
-    <button id="help-btn" class="hidden" onclick="triggerPicoHelp()" style="position: absolute; right: 20px; top: 20px; z-index: 110; background: #ff3366; color: white;">💡 助けてピコ！</button>
-    <div id="pico-help-window" class="screen hidden" style="z-index: 120; background: rgba(0,0,0,0.9);">
-        <h2 style="color: #ff3366;">💡 ピコの緊急翻訳・ヒント</h2>
-        <p id="pico-help-text" style="font-size: 1.4rem;"></p>
-        <button onclick="closePicoHelp()">戻る</button>
-    </div>
-
-    <div id="tips-screen" class="screen hidden">
-        <h2 style="font-size: 1.2rem; color: #aaa;">📡 次元回線 安定化中...（15秒休憩室）</h2>
-        <h3 id="tips-title" style="color: var(--primary-color);">コングのヒミツ</h3>
-        <p id="tips-text">コングの体重は、実はリンゴ3000個分。でも、バナナのほうが好きらしいよ。</p>
-        <div class="progress-bar"><div id="tips-progress" class="progress-fill"></div></div>
-    </div>
-</div>
-
-<script>
-    // ゲーム状態管理
-    let gameState = {
-        username: "",
-        storyStep: 0,
-        picoHelpStage: 0,
-        picoTimer: null
-    };
-
-    // ワクワクTIPSデータ
-    const tipsList = [
-        { title: "ピコの裏設定", text: "ピコの頭のアンテナは、実は美味しいカレーの電波を感知すると激しく回転する仕組みなんだ。" },
-        { title: "コングの体重", text: "コングの体重はリンゴ3000個分！でも、リンゴよりバナナのほうが圧倒的に好きらしい。" },
-        { title: "この世界の方言", text: "この世界のモンスターたちは、文法がめちゃくちゃでも、勢いとパッションが伝われば大満足して通してくれるよ！" }
-    ];
-
-    // オーディオ再生関数（ローカルアセット呼び出し）
-    function playAudio(filename) {
-        const audio = new Audio(`sounds/${filename}`);
-        audio.play().catch(e => console.log("Audio play blocked or missing:", filename));
-    }
-
-    // ① ログイン処理
-    window.onload = function() {
-        const savedName = localStorage.getItem("edq_username");
-        if(savedName) {
-            document.getElementById("username-input").value = savedName;
-        }
-    };
-
-    function saveName() {
-        const nameInput = document.getElementById("username-input").value.trim();
-        if(!nameInput) {
-            alert("名前に魂を込めよう！空欄にはできないよ！");
-            return;
-        }
-        playAudio("system_click.mp3");
-        gameState.username = nameInput;
-        localStorage.setItem("edq_username", nameInput);
-        
-        document.getElementById("login-screen").classList.add("hidden");
-        document.getElementById("disclaimer-screen").classList.remove("hidden");
-    }
-
-    function acceptDisclaimer() {
-        playAudio("system_click.mp3");
-        document.getElementById("disclaimer-screen").classList.add("hidden");
-        document.getElementById("story-screen").classList.remove("hidden");
-        startStory();
-    }
-
-    // ② 日常からのグラデーション移動プロット
-    const storySteps = [
-        { text: "都会の喧騒の中、あなたの部屋に静かな朝が訪れる。枕元には、見慣れない「古びた地図」と、光を放つメッセージプレートが置かれていた。", bg: "images/bg_room.jpg" },
-        { text: "プレートには、ハッキリとこう刻まれている。――『Go to the forest.（森へ向かえ）』", bg: "images/bg_room.jpg" },
-        { text: "あなたは導かれるように家を飛び出した。都会のビル群を抜け、景色は次第に緑に包まれていく。", bg: "images/bg_suburb.jpg" },
-        { text: "アスファルトが途切れ、土の匂いが強くなる。田舎道をひたすら進み、ついにその場所へ辿り着いた。", bg: "images/bg_country.jpg" },
-        { text: "ここが、すべての始まりとなる「不思議な森」の入り口……。", bg: "images/bg_forest.jpg" },
-        { text: "森の奥の広場に、ポツンと何かが倒れている。あれは……ブリキのマスコットロボット？どうやら完全に電源が切れて眠っているようだ。", bg: "images/bg_forest.jpg", char: "images/pico_08.png" },
-        { text: "ロボットの胸には、大きくこう書かれている。――【Say 'Hello' to Wake Me Up!】", bg: "images/bg_forest.jpg", char: "images/pico_08.png", action: "startMicMission" }
-    ];
-
-    function startStory() {
-        gameState.storyStep = 0;
-        showStep();
-    }
-
-    function showStep() {
-        const step = storySteps[gameState.storyStep];
-        document.getElementById("game-container").style.backgroundImage = `url('${step.bg}')`;
-        document.getElementById("story-text").innerText = step.text.replace("{name}", gameState.username);
-        
-        if(step.char) {
-            document.getElementById("character-layer").classList.remove("hidden");
-            document.getElementById("char-img").src = step.char;
-        } else {
-            document.getElementById("character-layer").classList.add("hidden");
-        }
-
-        if(step.action === "startMicMission") {
-            document.getElementById("story-btn").innerText = "マイクを起動する";
-        } else {
-            document.getElementById("story-btn").innerText = "つぎへ";
-        }
-    }
-
-    function nextStory() {
-        playAudio("system_click.mp3");
-        const currentStep = storySteps[gameState.storyStep];
-        
-        if(currentStep.action === "startMicMission") {
-            document.getElementById("story-screen").classList.add("hidden");
-            initiateVoiceRecognition();
-            return;
-        }
-
-        gameState.storyStep++;
-        if(gameState.storyStep < storySteps.length) {
-            showStep();
-        }
-    }
-
-    // ③ ピコの起動（音声認識ミッション） ＆ 大掃除ロジック
-    function initiateVoiceRecognition() {
-        // マイク起動時の暗転・上部半透明ウィンドウの絶対ルール適用
-        document.getElementById("mic-overlay").classList.remove("hidden");
-        const speechWin = document.getElementById("speech-window");
-        speechWin.classList.remove("hidden");
-        document.getElementById("speech-user").innerText = `${gameState.username.toUpperCase()}'S VOICE`;
-        document.getElementById("speech-text").innerText = "Say 'Hello' ! （聴き取り中...）";
-        document.getElementById("help-btn").classList.remove("hidden");
-
-        // ピコの3段階サポートタイマー開始
-        gameState.picoHelpStage = 0;
-        startPicoTimer();
-
-        // Web Speech API
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            // API非対応時は安全装置として15秒休憩室（ワクワクTIPS）へ流す
-            trigger15SecRoom("ブラウザが音声認識に対応していないみたい！裏技回線へ接続します。");
-            return;
-        }
-
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'en-US';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        recognition.start();
-
-        recognition.onresult = function(event) {
-            let resultText = event.results[0][0].transcript;
-            
-            // 【大掃除ロジック】すべて小文字化、記号排除
-            let cleanText = resultText.toLowerCase().replace(/[^a-z0-9ぁ-んァ-ヶー]/g, "");
-            
-            document.getElementById("speech-text").innerText = `「 ${resultText} 」`;
-
-            // 【想定回答（カタカナ混入くじ引き）】
-            const validAnswers = ["hello", "ハロー", "はろー", "ハロお"];
-
-            if (validAnswers.some(ans => cleanText.includes(ans))) {
-                // ミッションクリア
-                clearTimeout(gameState.picoTimer);
-                recognition.stop();
-                missionSuccess();
-            } else {
-                // 理解不能時のリretry誘導（プライド保護）
-                document.getElementById("speech-text").innerText = `「${resultText}」…ピコの辞書に入ってない新しい単語だったみたい！ポンコツでごめんね！もう一度言ってみて！`;
-                setTimeout(() => { recognition.start(); }, 3000);
-            }
-        };
-
-        recognition.onerror = function(event) {
-            console.log("Speech recognition error", event.error);
-            // エラー時もリトライ誘導
-            setTimeout(() => { try { recognition.start(); } catch(e){} }, 2000);
-        };
-    }
-
-    // ピコの3段階サポート（時間的猶予の確保）
-    function startPicoTimer() {
-        gameState.picoTimer = setTimeout(() => {
-            gameState.picoHelpStage = 1; // ① 2秒間ウンウンと頷いて待機（サイレント）
-            
-            gameState.picoTimer = setTimeout(() => {
-                gameState.picoHelpStage = 2; // ② 軽いヒント
-                console.log("ピコヒント段階2");
-                
-                gameState.picoTimer = setTimeout(() => {
-                    gameState.picoHelpStage = 3; // ③ 方向性を絞るヒント
-                    console.log("ピコヒント段階3");
-                    
-                    gameState.picoTimer = setTimeout(() => {
-                        gameState.picoHelpStage = 4; // ④ 明確な答えを誘導
-                        console.log("ピコヒント段階4");
-                    }, 4000);
-                }, 3000);
-            }, 2000);
-        }, 2000);
-    }
-
-    // 💡 助けてピコ！ボタンが押されたとき
-    function triggerPicoHelp() {
-        playAudio("system_click.mp3");
-        let helpMsg = "画面に向かって元気に『ハロー！』って言ってみよう！";
-        
-        if (gameState.picoHelpStage === 2) {
-            helpMsg = "💡 ピコ：「あいつ、出会い頭のあいさつについて聞いてるよ！」";
-        } else if (gameState.picoHelpStage === 3) {
-            helpMsg = "💡 ピコ：「世界で一番有名な挨拶、英語で『ハ』から始まる4文字の言葉だよ！」";
-        } else if (gameState.picoHelpStage >= 4) {
-            helpMsg = "💡 ピコ：「『Hello（ハロー）』って言ってみよう！ピコがシャキッと起きるよ！」";
-        }
-
-        document.getElementById("pico-help-text").innerText = helpMsg;
-        document.getElementById("pico-help-window").classList.remove("hidden");
-    }
-
-    function closePicoHelp() {
-        document.getElementById("pico-help-window").classList.add("hidden");
-    }
-
-    // 大成功演出
-    function missionSuccess() {
-        document.getElementById("mic-overlay").classList.add("hidden");
-        document.getElementById("help-btn").classList.add("hidden");
-        
-        playAudio("system_wakeup.mp3");
-        
-        // ピコ起動：立ち絵を pico_01.png（Normal姿）へ切り替え
-        document.getElementById("char-img").src = "images/pico_01.png";
-        
-        // ハリウッドボイス再生（通信ラグ0.0秒）
-        setTimeout(() => {
-            playAudio("pico_wakeup_voice.mp3");
-        }, 500);
-
-        // テキストウィンドウ復活・全肯定リアクション
-        document.getElementById("speech-window").classList.add("hidden");
-        document.getElementById("story-screen").classList.remove("hidden");
-        document.getElementById("story-text").innerHTML = `<span style="color:var(--primary-color); font-weight:bold;">ピコ</span>：「マスター！天才じゃない！？起こしてくれてありがとう！今日からボクが君の最強の従者だよ！」<br><br><span style="color:#aaa;">（ピコが仲間に加わった！ 第1章・クリア！）</span>`;
-        document.getElementById("story-btn").innerText = "第2章へ進む（未実装）";
-        document.getElementById("story-btn").onclick = function() {
-            alert("第1章クリアおめでとう！次の章のアップデートをお楽しみに！");
-        };
-    }
-
-    // ⑤ API満杯時・エラー時の「15秒休憩室（ワクワクTIPSシステム）」
-    function trigger15SecRoom(reason) {
-        document.getElementById("mic-overlay").classList.add("hidden");
-        document.getElementById("speech-window").classList.add("hidden");
-        document.getElementById("story-screen").classList.add("hidden");
-        
-        // ランダムでTIPSを選択
-        const randomTip = tipsList[Math.floor(Math.random() * tipsList.length)];
-        document.getElementById("tips-title").innerText = randomTip.title;
-        document.getElementById("tips-text").innerText = randomTip.text;
-        
-        document.getElementById("tips-screen").classList.remove("hidden");
-        
-        let progress = 0;
-        const progressFill = document.getElementById("tips-progress");
-        
-        const interval = setInterval(() => {
-            progress += (100 / 15);
-            progressFill.style.width = `${progress}%`;
-            if (progress >= 100) {
-                clearInterval(interval);
-                // 15秒経ったら退却システムとして安全に朝の部屋に戻す
-                retreatToRoom();
-            }
-        }, 1000);
-    }
-
-    // 退却システム（朝へ戻して体力全回復・自学自習誘導）
-    function retreatToRoom() {
-        document.getElementById("tips-screen").classList.add("hidden");
-        document.getElementById("story-screen").classList.remove("hidden");
-        
-        document.getElementById("game-container").style.backgroundImage = "url('images/bg_room.jpg')";
-        document.getElementById("character-layer").classList.add("hidden");
-        
-        document.getElementById("story-text").innerHTML = `【退却ーー！】<br>ふう、一旦あたまを冷やして朝の部屋に戻ってきたぞ。体力が全回復した！<br><br><span style="color:var(--primary-color);">💡ピコからの必勝アドバイス</span>：<br>「次は『Hello』の言葉が必要みたいだ。発音を確認したり、辞書で調べてからもう一回森へ行こう！」`;
-        document.getElementById("story-btn").innerText = "もう一度森へ行く";
-        document.getElementById("story-btn").onclick = function() {
-            location.reload(); // 簡単リトライ
-        };
-    }
-</script>
-</body>
-</html>
+👑 【Gemへ投げる指令】『Eigo DE Quest』第1章 本番用プログラム出力指示書
+開発担当AI（Gem）へ。 あなたは事前に読み込んだ【システム・インフラ基礎仕様書】の絶対ルールに従い、以下の【第1章プロット】を完全に再現するゲーム本番用のHTMLファイル（index.html）を1枚出力してください。
+🎬 【第1章：画面遷移とプロット】 以下の順番で、1つのHTML内で動的にDOMを書き換えてシームレスに進行させてください。
+	•	画面1：シネマティック・オープニング
+	◦	宇宙空間の背景。金色の重厚な英語テキスト（"The world is closed..."など）が、右上から左下へと拡大しながらすれ違って消えていくCSSアニメーションを実装1 。
+	◦	 
+	◦	アニメーション終了後、「冒険を始める」ボタンを配置。
+	◦	  
+	•	 
+	•	画面2：名前登録（ログイン） ＆ 免責プロローグ
+	◦	ボタンを押すと暗転。「この ぼうけんで あなたが よばれたい なまえ（ハンドルネーム）を おしえてね！」という入力欄を表示。入力された名前は localStorage に保存1 。
+	◦	 
+	◦	続いて「【これは進化と実験のフリーゲームである】データが消えても笑顔でやり直してね！負けても翌日全回復するよ！」というテキストをスタイリッシュに表示1 。
+	◦	  
+	•	 
+	•	画面3：朝の目覚めと謎のメッセージ
+	◦	背景を images/1st_morning.png に設定。画面中央に images/1st_book.png を表示。
+	◦	 
+	◦	「都会の静かな朝。机の上には見覚えのない『古びた地図』と『Go to the forest.』と書かれたメッセージがあった」とテキスト表示1 。
+	◦	 
+	◦	「森へ向かう」ボタンを表示。押すと景色が都会➔郊外➔田舎道➔森へとグラデーションで変わるCSS演出を入れる1 。
+	◦	  
+	•	 
+	•	画面4：ピコの起動ミッション
+	◦	背景を森にし、画像 images/pico_08.png （電源切れポーズ）を表示1 2 。
+	◦	 
+	◦	画面に「Say 'Hello' !」と表示し、マイクをオンにする。
+	◦	 
+	◦	判定配列（裏くじ含む）： ["hello", "ハロー", "はろー", "hi", "ハイ"]
+	◦	 
+	◦	判定： 生徒がマイクで叫び、配列の言葉が含まれていれば合格1 。
+	◦	  
+	•	 
+	•	画面5：ピコ目覚める（全肯定と相棒契約）
+	◦	画像を images/pico_02.png （笑顔ポーズ）に切り替え。
+	◦	 
+	◦	ピコ：「天才じゃない！？ おはよう、マスター！」とテキスト表示1 。
+	◦	 
+	◦	「森の奥へ進む」ボタンを表示。
+	◦	  
+	•	 
+	•	画面6：コングの咆哮と「Japan 1択」ミッション
+	◦	画像 images/kong_10.png （威嚇ポーズ）を表示1 2 。
+	◦	 
+	◦	コング："WHERE ARE YOU FROM!?" と大迫力で威圧1 。
+	◦	 
+	◦	ピコの誘導：「マスター！ビビらずに 'Japan' って叫ぶんだ！」1 。
+	◦	 
+	◦	画面に「Say 'Japan' !」と表示し、マイクをオンにする。
+	◦	 
+	◦	判定配列（裏くじ含む）： ["japan", "ジャパン", "じゃぱん"]
+	◦	 
+	◦	判定：生徒が叫び、配列の言葉が含まれていれば合格。
+	◦	  
+	•	 
+	•	画面7：コングの大号泣と「名前の儀式」
+	◦	画像を images/kong_06.png （号泣ポーズ）に切り替え1 2 。
+	◦	 
+	◦	コング：「俺の外見を見て、逃げ出さずに答えてくれた！」と大号泣するテキスト1 。
+	◦	 
+	◦	コング："What's your name?"（お前の名前はなんだ？）
+	◦	 
+	◦	生徒が自分の名前を答える演出（マイク判定はスキップし、localStorage の名前を表示する疑似会話でOK）1 。
+	◦	  
+	•	 
+	•	画面8：運命の『Yes!』と仲間合流
+	◦	コング： "（localStorageの名前）!? Are you my friend?"（友達か！？）3 。
+	◦	 
+	◦	ピコの誘導：「マスター！大きな声で『Yes!』って叫ぶピコ！」
+	◦	 
+	◦	判定配列（裏くじ含む）： ["yes", "イエス", "いえす", "yeah", "ok", "オーケー"]
+	◦	 
+	◦	判定：生徒がマイクで叫んだら大合格。
+	◦	 
+	◦	感動のファンファーレ（sounds/fanfare.mp3）と共にコングがパーティーに加わる歓喜テキストを出して終了3 。
+	◦	  
+	•	  
