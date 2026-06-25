@@ -1,77 +1,479 @@
-👑 【Gemへ投げる指令】『Eigo DE Quest』第1章 本番用プログラム出力指示書
-開発担当AI（Gem）へ。 あなたは事前に読み込んだ【システム・インフラ基礎仕様書】の絶対ルールに従い、以下の【第1章プロット】を完全に再現するゲーム本番用のHTMLファイル（index.html）を1枚出力してください。
-🎬 【第1章：画面遷移とプロット】 以下の順番で、1つのHTML内で動的にDOMを書き換えてシームレスに進行させてください。
-	•	画面1：シネマティック・オープニング
-	◦	宇宙空間の背景。金色の重厚な英語テキスト（"The world is closed..."など）が、右上から左下へと拡大しながらすれ違って消えていくCSSアニメーションを実装1 。
-	◦	 
-	◦	アニメーション終了後、「冒険を始める」ボタンを配置。
-	◦	  
-	•	 
-	•	画面2：名前登録（ログイン） ＆ 免責プロローグ
-	◦	ボタンを押すと暗転。「この ぼうけんで あなたが よばれたい なまえ（ハンドルネーム）を おしえてね！」という入力欄を表示。入力された名前は localStorage に保存1 。
-	◦	 
-	◦	続いて「【これは進化と実験のフリーゲームである】データが消えても笑顔でやり直してね！負けても翌日全回復するよ！」というテキストをスタイリッシュに表示1 。
-	◦	  
-	•	 
-	•	画面3：朝の目覚めと謎のメッセージ
-	◦	背景を images/1st_morning.png に設定。画面中央に images/1st_book.png を表示。
-	◦	 
-	◦	「都会の静かな朝。机の上には見覚えのない『古びた地図』と『Go to the forest.』と書かれたメッセージがあった」とテキスト表示1 。
-	◦	 
-	◦	「森へ向かう」ボタンを表示。押すと景色が都会➔郊外➔田舎道➔森へとグラデーションで変わるCSS演出を入れる1 。
-	◦	  
-	•	 
-	•	画面4：ピコの起動ミッション
-	◦	背景を森にし、画像 images/pico_08.png （電源切れポーズ）を表示1 2 。
-	◦	 
-	◦	画面に「Say 'Hello' !」と表示し、マイクをオンにする。
-	◦	 
-	◦	判定配列（裏くじ含む）： ["hello", "ハロー", "はろー", "hi", "ハイ"]
-	◦	 
-	◦	判定： 生徒がマイクで叫び、配列の言葉が含まれていれば合格1 。
-	◦	  
-	•	 
-	•	画面5：ピコ目覚める（全肯定と相棒契約）
-	◦	画像を images/pico_02.png （笑顔ポーズ）に切り替え。
-	◦	 
-	◦	ピコ：「天才じゃない！？ おはよう、マスター！」とテキスト表示1 。
-	◦	 
-	◦	「森の奥へ進む」ボタンを表示。
-	◦	  
-	•	 
-	•	画面6：コングの咆哮と「Japan 1択」ミッション
-	◦	画像 images/kong_10.png （威嚇ポーズ）を表示1 2 。
-	◦	 
-	◦	コング："WHERE ARE YOU FROM!?" と大迫力で威圧1 。
-	◦	 
-	◦	ピコの誘導：「マスター！ビビらずに 'Japan' って叫ぶんだ！」1 。
-	◦	 
-	◦	画面に「Say 'Japan' !」と表示し、マイクをオンにする。
-	◦	 
-	◦	判定配列（裏くじ含む）： ["japan", "ジャパン", "じゃぱん"]
-	◦	 
-	◦	判定：生徒が叫び、配列の言葉が含まれていれば合格。
-	◦	  
-	•	 
-	•	画面7：コングの大号泣と「名前の儀式」
-	◦	画像を images/kong_06.png （号泣ポーズ）に切り替え1 2 。
-	◦	 
-	◦	コング：「俺の外見を見て、逃げ出さずに答えてくれた！」と大号泣するテキスト1 。
-	◦	 
-	◦	コング："What's your name?"（お前の名前はなんだ？）
-	◦	 
-	◦	生徒が自分の名前を答える演出（マイク判定はスキップし、localStorage の名前を表示する疑似会話でOK）1 。
-	◦	  
-	•	 
-	•	画面8：運命の『Yes!』と仲間合流
-	◦	コング： "（localStorageの名前）!? Are you my friend?"（友達か！？）3 。
-	◦	 
-	◦	ピコの誘導：「マスター！大きな声で『Yes!』って叫ぶピコ！」
-	◦	 
-	◦	判定配列（裏くじ含む）： ["yes", "イエス", "いえす", "yeah", "ok", "オーケー"]
-	◦	 
-	◦	判定：生徒がマイクで叫んだら大合格。
-	◦	 
-	◦	感動のファンファーレ（sounds/fanfare.mp3）と共にコングがパーティーに加わる歓喜テキストを出して終了3 。
-	◦	  
-	•	  
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eigo DE Quest - Chapter 1</title>
+    <style>
+        /* 完全フルスクリーン・隙間ゼロ仕様 */
+        * {
+            box-sizing: border-box;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: #fff;
+            user-select: none;
+        }
+
+        /* ゲームメインコンテナ */
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 画面共通スタイル */
+        .scene {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: background 2s ease-in-out;
+        }
+
+        .scene.active {
+            display: flex;
+        }
+
+        /* UIコンポーネント */
+        .text-box {
+            background: rgba(0, 0, 0, 0.75);
+            border: 2px solid #ffd700;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 800px;
+            width: 90%;
+            margin-top: 20px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .main-text {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+        }
+
+        .sub-text {
+            font-size: 1rem;
+            color: #ccc;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ff4500, #ff8c00);
+            color: #fff;
+            border: none;
+            padding: 12px 35px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: transform 0.2s, opacity 0.2s;
+            margin-top: 15px;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 画面1: シネマティック・オープニング用アニメーション */
+        @keyframes cinematicText {
+            0% {
+                transform: translate(50%, -50%) scale(0.3);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, 50%) scale(2.5);
+                opacity: 0;
+            }
+        }
+        .cinematic-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+        }
+        .opening-text {
+            position: absolute;
+            top: 40%;
+            left: 40%;
+            width: 100%;
+            color: #ffd700;
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255,215,0,0.6);
+            transform-origin: center center;
+            animation: cinematicText 7s linear forwards;
+            pointer-events: none;
+        }
+
+        /* 画面2: 名前入力フォーム */
+        .input-name {
+            background: #222;
+            border: 2px solid #ff8c00;
+            color: #fff;
+            padding: 10px 15px;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            width: 250px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        /* 画面3: 本の拡大表示 */
+        .book-img {
+            max-height: 40vh;
+            object-fit: contain;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.03); }
+        }
+
+        /* キャラクター画像表示共通 */
+        .char-img {
+            max-height: 50vh;
+            object-fit: contain;
+            margin-bottom: 10px;
+            z-index: 5;
+        }
+
+        /* 音声認識インジケータ */
+        .mic-status {
+            font-size: 1.1rem;
+            color: #00ffcc;
+            margin-top: 10px;
+            font-weight: bold;
+            min-height: 1.5rem;
+        }
+        .target-phrase {
+            font-size: 1.8rem;
+            color: #ffeb3b;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+
+    <div id="scene1" class="scene active">
+        <div class="cinematic-container">
+            <div class="opening-text">The world is closed...</div>
+        </div>
+        <button class="btn" id="btn-start-adventure" style="position: absolute; bottom: 15%; z-index: 20; display: none;">冒険を始める</button>
+    </div>
+
+    <div id="scene2" class="scene">
+        <div class="text-box">
+            <div class="main-text">この ぼうけんで あなたが よばれたい なまえ（ハンドルネーム）を おしえてね！</div>
+            <input type="text" id="player-name-input" class="input-name" maxlength="12" placeholder="なまえを入力">
+            <div id="disclaimer-text" style="display: none; margin-top: 20px; border-top: 1px dashed #555; padding-top: 15px;">
+                <p style="color: #ff4500; font-weight: bold; font-size: 1.1rem;">【これは進化と実験のフリーゲームである】</p>
+                <p class="sub-text">データが消えても笑顔でやり直してね！負けても翌日全回復するよ！</p>
+            </div>
+            <div>
+                <button class="btn" id="btn-submit-name">決定ピコ！</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="scene3" class="scene">
+        <img src="images/1st_book.png" alt="古びた地図と本" class="book-img">
+        <div class="text-box">
+            <div class="main-text">都会の静かな朝。机の上には見覚えのない『古びた地図』と『Go to the forest.』と書かれたメッセージがあった。</div>
+            <button class="btn" id="btn-go-forest">森へ向かう</button>
+        </div>
+    </div>
+
+    <div id="scene4" class="scene">
+        <img src="images/pico_08.png" alt="ピコ（電源切れ）" class="char-img">
+        <div class="text-box">
+            <div class="main-text">森の入り口で、奇妙なロボットが倒れている……電源が切れているようだ。</div>
+            <div class="target-phrase">Say 'Hello' !</div>
+            <div class="mic-status" id="mic-status-4">マイクの準備中...</div>
+        </div>
+    </div>
+
+    <div id="scene5" class="scene">
+        <img src="images/pico_02.png" alt="ピコ（笑顔）" class="char-img">
+        <div class="text-box">
+            <div class="main-text"><span class="user-name-disp"></span>「天才じゃない！？ おはよう、マスター！」</div>
+            <p class="sub-text">どうやら私の声に反応して起動したようだ。この子の名前はピコ。心強い相棒ができた！</p>
+            <button class="btn" id="btn-go-deeper">森の奥へ進む</button>
+        </div>
+    </div>
+
+    <div id="scene6" class="scene">
+        <img src="images/kong_10.png" alt="コング（威嚇）" class="char-img">
+        <div class="text-box">
+            <div class="main-text" style="color: #ff3333; font-weight: bold; font-size: 1.4rem;">"WHERE ARE YOU FROM!?"</div>
+            <div class="main-text">ピコ：「マスター！ビビらずに 'Japan' って叫ぶんだ！」</div>
+            <div class="target-phrase">Say 'Japan' !</div>
+            <div class="mic-status" id="mic-status-6">マイクの準備中...</div>
+        </div>
+    </div>
+
+    <div id="scene7" class="scene">
+        <img src="images/kong_06.png" alt="コング（号泣）" class="char-img">
+        <div class="text-box">
+            <div class="main-text">コング：「俺の外見を見て、逃げ出さずに答えてくれた！」</div>
+            <p class="sub-text">大男は突然激しく泣き崩れた。見た目で怖がられるのが寂しかったらしい。</p>
+            <div class="main-text" style="color: #ffcc00; font-weight: bold; margin-top: 15px;">"What's your name?"</div>
+            <div class="main-text" style="border: 1px solid #555; padding: 10px; background: rgba(255,255,255,0.1); margin-top: 10px;">
+                あなた：「My name is <span class="user-name-disp"></span> !」
+            </div>
+            <button class="btn" id="btn-next-friend" style="margin-top: 15px;">答える</button>
+        </div>
+    </div>
+
+    <div id="scene8" class="scene">
+        <img src="images/kong_06.png" id="img-scene8" alt="コング" class="char-img">
+        <div class="text-box">
+            <div class="main-text" style="color: #ffcc00; font-weight: bold; font-size: 1.3rem;">"<span class="user-name-disp"></span>!? Are you my friend?"</div>
+            <div class="main-text">ピコ：「マスター！大きな声で『Yes!』って叫ぶピコ！」</div>
+            <div class="target-phrase">Say 'Yes' !</div>
+            <div class="mic-status" id="mic-status-8">マイクの準備中...</div>
+            <div id="ending-message" style="display: none; margin-top: 20px; color: #00ffcc; font-weight: bold; font-size: 1.3rem;">
+                🎉 コングがパーティーに加わった！ 第1章 クリア！
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<audio id="audio-fanfare" src="sounds/fanfare.mp3" preload="auto"></audio>
+
+<script>
+    // 状態管理
+    const state = {
+        playerName: localStorage.getItem('player_name') || 'マスター'
+    };
+
+    // 音声認識の初期化
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US'; // 英語ベース判定。裏くじ日本語判定も行うため随時最適化
+    }
+
+    // 大掃除ロジック（小文字化・記号排除）
+    function cleanText(text) {
+        return text.toLowerCase().replace(/[\!\,.\?\-\_\~\(\)\'\"]/g, "").trim();
+    }
+
+    // 画面遷移管理
+    function changeScene(currentId, nextId, callback) {
+        document.getElementById(currentId).classList.remove('active');
+        const nextScene = document.getElementById(nextId);
+        nextScene.classList.add('active');
+        if (callback) callback(nextScene);
+    }
+
+    // ユーザー名表示の更新
+    function updateNameDisplays() {
+        document.querySelectorAll('.user-name-disp').forEach(el => {
+            el.textContent = state.playerName;
+        });
+    }
+
+    // 画面1の演出制御
+    window.addEventListener('DOMContentLoaded', () => {
+        // オープニングテキストアニメーション終了後にボタンを表示
+        setTimeout(() => {
+            document.getElementById('btn-start-adventure').style.display = 'block';
+        }, 4000); // 4秒後には読める位置にくるため先行表示
+    });
+
+    document.getElementById('btn-start-adventure').addEventListener('click', () => {
+        changeScene('scene1', 'scene2');
+    });
+
+    // 画面2: 名前登録
+    document.getElementById('btn-submit-name').addEventListener('click', () => {
+        const input = document.getElementById('player-name-input');
+        const disclaimer = document.getElementById('disclaimer-text');
+        const btn = document.getElementById('btn-submit-name');
+
+        if (!input.value.trim()) {
+            alert('なまえを入力してね！');
+            return;
+        }
+
+        if (disclaimer.style.display === 'none') {
+            // 1ステップ目: 名前を一時保持して免責を表示
+            state.playerName = input.value.trim();
+            localStorage.setItem('player_name', state.playerName);
+            updateNameDisplays();
+            input.disabled = true;
+            disclaimer.style.display = 'block';
+            btn.textContent = '冒険へ旅立つ！';
+        } else {
+            // 2ステップ目: 本編へ
+            changeScene('scene2', 'scene3', (scene) => {
+                scene.style.backgroundImage = "url('images/1st_morning.png')";
+            });
+        }
+    });
+
+    // 画面3: 朝の目覚めからグラデーションフェード遷移
+    document.getElementById('btn-go-forest').addEventListener('click', () => {
+        const scene3 = document.getElementById('scene3');
+        
+        // 都会 ➔ 郊外 ➔ 田舎道 ➔ 森へと背景を段階的にグラデーション変化させるCSS演出
+        setTimeout(() => { scene3.style.background = "#4a69bd"; }, 0);     // 郊外イメージ
+        setTimeout(() => { scene3.style.background = "#78e08f"; }, 600);   // 田舎道イメージ
+        setTimeout(() => { scene3.style.background = "#1e3d59"; }, 1200);  // 森の深緑イメージ
+        
+        setTimeout(() => {
+            changeScene('scene3', 'scene4', (scene) => {
+                scene.style.backgroundImage = "url('images/1st_morning.png')"; // 背景を森に変更（プロット再現）
+                startMission4();
+            });
+        }, 2000);
+    });
+
+    // 音声認識ミッション共通ロジック
+    function runSpeechMission(recognitionContainerId, keywords, onSuccess) {
+        const statusEl = document.getElementById(recognitionContainerId);
+        if (!recognition) {
+            statusEl.textContent = "※音声認識非対応のブラウザです（タップで合格扱い）";
+            statusEl.style.cursor = "pointer";
+            statusEl.onclick = () => { onSuccess(); };
+            return;
+        }
+
+        recognition.lang = keywords.includes('japan') || keywords.includes('hello') ? 'en-US' : 'ja-JP';
+        
+        statusEl.textContent = "🎤 聞き取り中... 声を出してください";
+        
+        try {
+            recognition.start();
+        } catch(e) {
+            // 既に動いている場合はスキップ
+        }
+
+        recognition.onresult = (event) => {
+            const resultText = event.results[0][0].transcript;
+            const cleaned = cleanText(resultText);
+            
+            // くじ引き判定（部分一致判定）
+            const isMatch = keywords.some(keyword => cleaned.includes(cleanText(keyword)));
+            
+            if (isMatch) {
+                statusEl.textContent = `⭕ 成功！「${resultText}」を認識`;
+                recognition.onend = null;
+                setTimeout(onSuccess, 1500);
+            } else {
+                statusEl.textContent = `❌ 「${resultText}」ではないピコ。もう一度！`;
+                setTimeout(() => { recognition.start(); }, 1500);
+            }
+        };
+
+        recognition.onerror = (err) => {
+            if (err.error === 'no-speech') {
+                statusEl.textContent = "🎤 声が聞こえなかったピコ。もう一度言ってね";
+            } else {
+                statusEl.textContent = "マイクエラー。再試行中...";
+            }
+        };
+
+        recognition.onend = () => {
+            // 合格するまで自動リスタート
+            setTimeout(() => { 
+                try { recognition.start(); } catch(e){}
+            }, 1000);
+        };
+    }
+
+    // 画面4: ピコ起動ミッション
+    function startMission4() {
+        const keywords = ["hello", "ハロー", "はろー", "hi", "ハイ"];
+        runSpeechMission('mic-status-4', keywords, () => {
+            if(recognition) recognition.abort();
+            changeScene('scene4', 'scene5');
+        });
+    }
+
+    // 画面5: 森の奥へ進む
+    document.getElementById('btn-go-deeper').addEventListener('click', () => {
+        changeScene('scene5', 'scene6', () => {
+            startMission6();
+        });
+    });
+
+    // 画面6: コングの咆哮
+    function startMission6() {
+        const keywords = ["japan", "ジャパン", "じゃぱん"];
+        runSpeechMission('mic-status-6', keywords, () => {
+            if(recognition) recognition.abort();
+            changeScene('scene6', 'scene7');
+        });
+    }
+
+    // 画面7: 名前の儀式（疑似会話で次に進む）
+    document.getElementById('btn-next-friend').addEventListener('click', () => {
+        changeScene('scene7', 'scene8', () => {
+            startMission8();
+        });
+    });
+
+    // 画面8: 運命の『Yes!』
+    function startMission8() {
+        const keywords = ["yes", "イエス", "いえす", "yeah", "ok", "オーケー"];
+        runSpeechMission('mic-status-8', keywords, () => {
+            if(recognition) {
+                recognition.onend = null;
+                recognition.abort();
+            }
+            
+            // ファンファーレ再生
+            const fanfare = document.getElementById('audio-fanfare');
+            fanfare.play().catch(e => console.log("Audio play deferred"));
+
+            // 終了演出
+            document.getElementById('mic-status-8').style.display = 'none';
+            document.getElementById('ending-message').style.display = 'block';
+        });
+    }
+</script>
+
+</body>
+</html>
