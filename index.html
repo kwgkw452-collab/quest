@@ -1,261 +1,60 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Eigo DE Quest - Chapter 1 Opening Test</title>
-    <style>
-        /* ==========================================================================
-           1. 基本スタイル（完全フルスクリーン・隙間ゼロ）
-           ========================================================================== */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #000;
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        /* アスペクト比16:9を維持、またはスマホ全画面対応のコンテナ */
-        #game-viewport {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            max-width: 100vw;
-            max-height: 100vh;
-            overflow: hidden;
-        }
-
-        /* ==========================================================================
-           2. 背景レイヤー（クロスフェード実装の核心部分）
-           ========================================================================== */
-        .bg-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            opacity: 0;
-            z-index: 1;
-            /* フワッと2.5秒かけて切り替わるクロスフェード仕様 */
-            transition: opacity 2.5s ease-in-out;
-        }
-
-        /* 現在アクティブな背景 */
-        .bg-layer.active {
-            opacity: 1;
-            z-index: 2;
-        }
-
-        /* ==========================================================================
-           3. キャラクター配置（背景透過PNGの自動合成）
-           ========================================================================== */
-        #character-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 5; /* 背景（2）より手前、テキストウインドウ（10）より後ろ */
-            pointer-events: none; /* クリックイベントを透過させて背後の画面タップを邪魔しない */
-        }
-
-        .char-img {
-            max-height: 55vh;
-            max-width: 80vw;
-            object-fit: contain;
-            opacity: 0;
-            transform: translateY(20px);
-            /* 背景のフェード完了に合わせて少し遅れてフワッと登場 */
-            transition: opacity 2s ease-out, transform 2s ease-out;
-        }
-
-        .char-img.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* ==========================================================================
-           4. 劇場スタイル UI（テキストウィンドウ・字幕エリア）
-           ========================================================================== */
-        #ui-layer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            align-items: center;
-            padding: 20px;
-            /* 画面全体のどこをタップしても進めるための全面判定エリア */
-            cursor: pointer;
-        }
-
-        .text-window {
-            width: 100%;
-            max-width: 800px;
-            min-height: 110px;
-            background: rgba(10, 15, 30, 0.85); /* 異世界ダークネイビー調 */
-            border: 2px solid #ffd700; /* 重厚なゴールドの細枠 */
-            border-radius: 12px;
-            padding: 18px 25px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-            position: relative;
-            box-sizing: border-box;
-        }
-
-        .story-text {
-            color: #ffffff;
-            font-size: 1.15rem;
-            line-height: 1.6;
-            letter-spacing: 0.05em;
-            white-space: pre-wrap;
-        }
-
-        /* タップを促す右下の三角マーカー */
-        .next-marker {
-            position: absolute;
-            right: 20px;
-            bottom: 12px;
-            color: #ffd700;
-            font-size: 0.9rem;
-            animation: blink 1.2s infinite alternate;
-        }
-
-        @keyframes blink {
-            0% { opacity: 0.2; transform: translateY(0); }
-            100% { opacity: 1; transform: translateY(3px); }
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Microphone Test</title>
 </head>
 <body>
 
-<div id="game-viewport">
+<h1>マイクテスト</h1>
 
-    <div id="bg1" class="bg-layer active" style="background-image: url('images/1st_morning.png');"></div>
-    <div id="bg2" class="bg-layer" style="background-image: url('images/bg_city.png');"></div>
-    <div id="bg3" class="bg-layer" style="background-image: url('images/bg_suburb.png');"></div>
-    <div id="bg4" class="bg-layer" style="background-image: url('images/bg_country.png');"></div>
-    <div id="bg5" class="bg-layer" style="background-image: url('images/bg_forest.png');"></div>
+<button id="startBtn">マイク開始</button>
 
-    <div id="character-container">
-        <img id="pico-img" src="images/pico_08.png" alt="Pico" class="char-img">
-    </div>
-
-    <div id="ui-layer">
-        <div class="text-window">
-            <div id="text-target" class="story-text">都会の静かな朝。いつもと変わらない、見慣れた自分の部屋から、全ての物語が始まる……。</div>
-            <div class="next-marker">▼ Tap to Next</div>
-        </div>
-    </div>
-
-</div>
+<div id="result"></div>
 
 <script>
-    // ストーリースクリプトデータ（背景切替タイミング、テキスト、ピコ表示フラグ）
-    const scenario = [
-        {
-            text: "都会の静かな朝。いつもと変わらない、見慣れた自分の部屋から、全ての物語が始まる……。",
-            bgIndex: 1,
-            showPico: false
-        },
-        {
-            text: "机の上には、見覚えのない『古びた地図』と『Go to the forest.』と書かれた謎のメッセージがあった。",
-            bgIndex: 1,
-            showPico: false
-        },
-        {
-            text: "メッセージに導かれるように、慌てて家を飛び出した。\n目の前に広がるのは、いつもの見慣れた都会の街並み（bg_city）。",
-            bgIndex: 2,
-            showPico: false
-        },
-        {
-            text: "走るにつれてビル群は遠ざかり、景色は賑やかな郊外の道（bg_suburb）へと移り変わっていく。",
-            bgIndex: 3,
-            showPico: false
-        },
-        {
-            text: "アスファルトの舗装が途切れ、足元は次第に懐かしい田舎の土の道（bg_country）へと変わった。森の匂いが近づいてくる。",
-            bgIndex: 4,
-            showPico: false
-        },
-        {
-            text: "目の前に現れたのは、未知の植物が妖しく光る「不思議な森（bg_forest）」。\nここがメッセージの指し示す場所なのだろうか……？",
-            bgIndex: 5,
-            showPico: false
-        },
-        {
-            text: "森の入り口の草むらに、奇妙なロボットが倒れているのを見つけた。\nどうやら電池切れで眠っているようだ（pico_08）。",
-            bgIndex: 5,
-            showPico: true  // このステップでピコを合成して登場させる
-        },
-        {
-            text: "（第1章：背景動作テスト・オープニング演出完了ピコ！）",
-            bgIndex: 5,
-            showPico: true
-        }
-    ];
 
-    let currentStep = 0;
-    let currentBgIndex = 1;
+const SpeechRecognition =
+window.SpeechRecognition ||
+window.webkitSpeechRecognition;
 
-    const textTarget = document.getElementById('text-target');
-    const picoImg = document.getElementById('pico-img');
-    const uiLayer = document.getElementById('ui-layer');
+if (!SpeechRecognition) {
+alert("このブラウザは音声認識に対応していません");
+}
 
-    // 次のシナリオへ進むメイン関数
-    function nextStory() {
-        if (currentStep >= scenario.length - 1) {
-            // シナリオが最後まで到達したら最初に戻る（テストループ用仕様）
-            currentStep = 0;
-        } else {
-            currentStep++;
-        }
+const recognition = new SpeechRecognition();
 
-        const currentData = scenario[currentStep];
+recognition.lang = "en-US";
+recognition.continuous = false;
+recognition.interimResults = false;
 
-        // 1. テキストの更新
-        textTarget.textContent = currentData.text;
+recognition.onstart = () => {
+console.log("認識開始");
+};
 
-        // 2. 背景のクロスフェード処理（変更がある場合のみ実行）
-        if (currentData.bgIndex !== currentBgIndex) {
-            // 古いアクティブレイヤーを解除
-            document.getElementById(`bg${currentBgIndex}`).classList.remove('active');
-            
-            // 新しいレイヤーをアクティブ化（CSS transitionにより2.5秒かけてフェード）
-            currentBgIndex = currentData.bgIndex;
-            document.getElementById(`bg${currentBgIndex}`).classList.add('active');
-        }
+recognition.onend = () => {
+console.log("認識終了");
+};
 
-        // 3. ピコ（キャラクター）の合成表示制御
-        if (currentData.showPico) {
-            picoImg.classList.add('show');
-        } else {
-            picoImg.classList.remove('show');
-        }
-    }
+recognition.onresult = (event) => {
+const text = event.results[0][0].transcript;
 
-    // 画面全体（UIレイヤー）のどこをタップ・クリックしても次へ進むイベント
-    uiLayer.addEventListener('click', (e) => {
-        nextStory();
-    });
+document.getElementById("result").innerText =
+"認識結果: " + text;
+};
+
+recognition.onerror = (event) => {
+console.log("エラー:", event.error);
+};
+
+document.getElementById("startBtn").addEventListener("click", () => {
+try {
+recognition.start();
+} catch (e) {
+console.log(e);
+}
+});
+
 </script>
 
 </body>
