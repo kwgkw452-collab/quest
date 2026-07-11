@@ -3,321 +3,406 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eigo DE Quest - Base System & Debugger</title>
+    <title>S001 目覚めと最初の試練（言葉を奪還せよ）</title>
     <style>
-        /* ==========================================================================
-           1. コア・レイヤー設計（CSS）
-           ========================================================================== */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        /* 共通スタイル */
+        * { box-sizing: border-box; }
         body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #000;
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #111; color: #fff;
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
-        }
-
-        /* ゲーム画面全体のコンテナ */
-        #game-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            max-width: 1024px; /* タブレット・PC想定の最大幅 */
-            margin: 0 auto;
             overflow: hidden;
         }
-
-        /* 背景レイヤー：最背面(z-index: 1)に配置し、絶対に画面全体を覆う */
-        .bg-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+        #game-container {
+            position: relative; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: #050505;
+        }
+        .scene {
+            display: none; position: absolute; width: 100%; height: 100%;
+            flex-direction: column; justify-content: center; align-items: center;
+            padding: 20px; text-align: center; box-sizing: border-box;
             z-index: 1;
-            transition: background-image 0.5s ease-in-out;
-            /* 開発時デバッグ用： border: 5px solid red !important; */
         }
+        .active { display: flex; }
 
-        /* エフェクトレイヤー：背景のすぐ上、キャラクターの下 (z-index: 2) */
-        #effect-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            pointer-events: none; /* 下位レイヤーのクリックを阻害しない */
-        }
-
-        /* スクリーン共通：背景の上に重なるUI空間 (z-index: 3) */
-        .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 3;
-            display: none;
-            /* 背景を透過させるための絶対条件 */
-            background: transparent !important; 
-        }
-
-        /* アクティブなスクリーンのみ表示 */
-        .screen.active {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-        }
-
-        /* ==========================================================================
-           2. UI/UX コンポーネントスタイル
-           ========================================================================== */
-        /* 音声認識インジケーター */
-        #listening-indicator {
-            display: none;
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(255, 0, 0, 0.85);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            animation: pulse 1s infinite alternate;
+        /* UI要素 */
+        button {
+            padding: 14px 28px; font-size: 18px; background-color: #ff9900; color: #fff;
+            border: none; border-radius: 25px; cursor: pointer; margin-top: 25px; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255,153,0,0.5); transition: transform 0.2s, background-color 0.2s;
             z-index: 10;
         }
-
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            100% { opacity: 1; }
+        button:hover { transform: scale(1.05); background-color: #ffaa22; }
+        input[type="text"] {
+            padding: 12px 15px; font-size: 18px; border-radius: 5px; border: 2px solid #ff9900;
+            width: 80%; max-width: 300px; margin-top: 20px; text-align: center; background: #222; color: #fff;
         }
 
-        /* メインテキストボックス（ピコガイド・あなたの声など） */
-        .textbox {
-            width: 90%;
-            background: rgba(0, 0, 0, 0.75);
-            border: 3px solid #fff;
-            border-radius: 10px;
-            color: #fff;
-            padding: 15px;
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            z-index: 4;
+        /* 1. オープニング演出 (スター・ウォーズ風) */
+        .star-wars-window {
+            position: relative; width: 100%; height: 60%; overflow: hidden;
+            perspective: 200px; display: flex; justify-content: center;
+        }
+        .star-wars-text {
+            position: absolute; width: 80%; max-width: 600px; text-align: center;
+            color: #ffcc00; font-size: 24px; font-weight: bold; line-height: 1.8;
+            transform-origin: 50% 100%;
+            animation: crawl 10s linear forwards;
+            text-shadow: 0 0 8px rgba(255,204,0,0.5);
+        }
+        @keyframes crawl {
+            0% { transform: rotateX(20deg) translateY(100%); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: rotateX(20deg) translateY(-120%); opacity: 0; }
         }
 
-        .user-voice-box {
-            color: #5fffa3; /* ユーザーの発話テキストは緑系で差別化 */
+        /* プロローグ装飾 */
+        .prologue-box {
+            max-width: 650px; background: rgba(255,255,255,0.08); padding: 25px;
+            border-radius: 15px; border: 2px solid #ff9900; text-align: left; line-height: 1.6;
+            max-height: 70vh; overflow-y: auto;
+        }
+        .prologue-title { color: #ffcc00; font-size: 20px; font-weight: bold; text-align: center; margin-bottom: 15px; }
+
+        /* 背景演出用 */
+        .bg-view {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+            background-color: #1a1a1a; transition: background-color 1.5s ease-in-out;
+            display: flex; justify-content: center; align-items: center; font-size: 24px; color: rgba(255,255,255,0.15);
             font-weight: bold;
         }
-
-        /* 汎用ボタン */
-        .btn {
-            background: linear-gradient(135deg, #ff9900, #ff5500);
-            border: 2px solid #fff;
-            border-radius: 25px;
-            color: #fff;
-            padding: 12px 30px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
+        /* 夜のキャンプ用ブルーフィルター自動合成 */
+        .blue-filter {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 80, 0.45); mix-blend-mode: multiply; pointer-events: none; z-index: -1;
+            display: none;
         }
 
-        .btn:active {
-            transform: scale(0.95);
+        /* キャラクター・メッセージエリア */
+        .message-window {
+            background: rgba(0, 0, 0, 0.85); border: 2px solid #fff; border-radius: 10px;
+            padding: 20px; width: 90%; max-width: 600px; margin-top: auto; margin-bottom: 15px;
+            text-align: left; min-height: 120px; box-shadow: 0 0 15px rgba(255,255,255,0.3);
+            z-index: 5;
         }
+        .speaker-name { font-weight: bold; color: #00ffcc; margin-bottom: 8px; font-size: 18px; }
+        .speaker-name.pico { color: #33ccff; }
+        .speaker-name.kong { color: #ff3333; }
+        
+        .char-display {
+            display: flex; justify-content: center; align-items: flex-end; gap: 40px;
+            width: 100%; height: 35vh; margin-top: 40px; position: relative; z-index: 4;
+        }
+        .char-sprite {
+            width: 140px; height: 170px; display: none; flex-direction: column;
+            justify-content: center; align-items: center; font-weight: bold; border-radius: 10px;
+            position: relative; transition: all 0.5s; text-align: center; padding: 10px;
+        }
+        .pico-sprite { background: #1a4a66; border: 2px solid #33ccff; color: #33ccff; box-shadow: 0 0 10px #33ccff; }
+        .kong-sprite { background: #592424; border: 2px solid #ff3333; color: #ff3333; width: 170px; height: 200px; box-shadow: 0 0 10px #ff3333; }
+        
+        /* 状態・ポーズ表現 */
+        .zzz-bubble {
+            position: absolute; top: -30px; font-size: 28px; color: #fff; left: 40%;
+            animation: floatZzz 2s infinite ease-in-out;
+        }
+        @keyframes floatZzz {
+            0% { transform: translateY(0) scale(0.8); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-20px) scale(1.2); opacity: 0; }
+        }
+
+        /* マイク入力エリア */
+        .mic-section {
+            background: rgba(15, 15, 15, 0.95); border-top: 3px solid #ff9900;
+            width: 100%; padding: 20px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 10;
+        }
+        .mic-hint { font-size: 15px; color: #ccc; margin-bottom: 8px; font-weight: bold; }
+        .mic-status { font-weight: bold; color: #ff9900; margin-bottom: 10px; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div id="game-container">
-    <div id="bg-layer" class="bg-layer"></div>
-    <div id="effect-layer"></div>
 
-    <div id="listening-indicator">🔴 音声認識中（LISTENING...）</div>
-
-    <div id="screen-title" class="screen active">
-        <div style="margin-top: auto; text-align: center; color: white;">
-            <h1 style="font-size: 2.5rem; text-shadow: 2px 2px 4px #000; margin-bottom: 20px;">Eigo DE Quest</h1>
-            <p style="margin-bottom: 40px;">〜英語を話すことで世界を動かすRPG〜</p>
+    <div id="scene-opening" class="scene active">
+        <div class="star-wars-window">
+            <div class="star-wars-text">
+                SURVIVAL ENGLISH<br><br>
+                A LONG TIME AGO IN AN<br>ENGLISH GALAXY...<br><br>
+                THE POWER OF ONE WORD<br>WAKES UP THE WORLD...
+            </div>
         </div>
-        <div style="margin-bottom: auto;">
-            <button class="btn" onclick="startGameContent()">ゲームスタート</button>
-        </div>
+        <button onclick="goToScene('scene-name-reg')">次へ進む</button>
     </div>
 
-    <div id="screen-game" class="screen">
-        <div class="textbox" id="pico-guide-box">
-            ピコ：「マスター！冒険の準備はいいピコ？」
+    <div id="scene-name-reg" class="scene">
+        <h2>名前の入力</h2>
+        <p style="font-size: 18px; max-width: 500px;">この ぼうけんで あなたが よばれたい なまえ（ハンドルネーム）を おしえてね！</p>
+        <input type="text" id="username-input" placeholder="なまえを入力してください" value="ひろゆき">
+        <button onclick="registerName()">決定して次へ</button>
+    </div>
+
+    <div id="scene-prologue" class="scene">
+        <div class="prologue-box">
+            <div class="prologue-title">🌟 たいせつな お約束（プロローグ）</div>
+            <p><strong>🗣️ 【君の声が魔法になる世界へようこそ！】</strong></p>
+            <p>ここから先は、ワクワクドキドキが止まらない英語の異世界！「英語なんて無理！」って思ってる？ 大丈夫、最高の相棒ロボット・ピコがいつでも君を助けてくれるよ！</p>
+            <p>長い言葉なんていらない。たった２、３語、ピンチの時は「たった１語」の英単語を喋るだけで、それが世界を動かす最大の魔法になる。その魔法こそが『サバイバル・イングリッシュ』なんだ！</p>
+            <p>失敗したってへっちゃら！君の言葉だけで、どんなピンチも乗り越えられる。たった一言の勇気が、きっと君を新しく変えてくれる！ まずはその一歩を踏み出して、新しい自分出会いにいこう。さぁ、大冒険を始めよう！</p>
+            <p style="font-size: 12px; color: #ccc; border-top: 1px solid #555; padding-top: 10px;">※本ゲームはフリーソフトです。ゲームオーバーはなく、データ復活機能が完全実装されています。</p>
         </div>
+        <button onclick="startAdventure()">大冒険を始める</button>
+    </div>
+
+    <div id="scene-gameplay" class="scene" style="justify-content: flex-start; padding: 0;">
+        <div id="game-bg" class="bg-view">【背景: 読み込み中】</div>
+        <div id="game-blue-filter" class="blue-filter"></div>
         
-        <div class="textbox user-voice-box" id="user-voice-box" style="display: none;">
-            あなたの声：(ここに認識されたテキストが表示されます)
+        <div class="char-display">
+            <div id="sprite-pico" class="char-sprite pico-sprite">
+                <div>ピコ</div>
+                <div style="font-size: 12px; margin-top:5px;" id="pico-status">[C001: 停止中]</div>
+            </div>
+            <div id="sprite-kong" class="char-sprite kong-sprite">
+                <div id="kong-title">コング (M001)</div>
+                <div style="font-size: 12px; margin-top:5px;" id="kong-status">[角ありゴリラ]</div>
+                <div id="kong-zzz" class="zzz-bubble" style="display: none;">Zzz...</div>
+            </div>
         </div>
 
-        <div style="margin-bottom: 20px; display: flex; gap: 10px;">
-            <button class="btn" onclick="testTriggerSpeech()">マイクテスト発火</button>
-            <button class="btn" style="background: #555;" onclick="runDiagnostics()">描画デバッグ実行</button>
+        <div class="message-window">
+            <div id="dialogue-speaker" class="speaker-name">システム</div>
+            <div id="dialogue-text">物語が始まります...</div>
+        </div>
+
+        <div class="mic-section">
+            <div id="mic-instruction" class="mic-hint">指示を待っています...</div>
+            <div id="mic-status-text" class="mic-status">🎤 マイク受付準備中</div>
+            <div id="mic-input-area" style="display: flex; gap: 10px; width: 100%; max-width: 450px;">
+                <input type="text" id="simulated-voice-input" style="margin-top:0; flex-grow: 1;" placeholder="ここに発話する英単語を入力">
+                <button id="mic-submit-btn" style="margin-top:0; padding: 10px 20px;" onclick="processVoiceInput()">発話</button>
+            </div>
         </div>
     </div>
+
 </div>
 
 <script>
-    // グローバルゲーム状態管理
-    const gameState = {
-        currentSceneIndex: 0,
-        monstersData: null,
-        isLoaded: false
-    };
+    // 変数定義の不具合を完全に修正
+    let playerName = "ひろゆき";
+    let currentStep = 0;
 
-    // 初期化処理
-    window.addEventListener('DOMContentLoaded', async () => {
-        console.log("【System】Base System Initialized.");
-        // モンスター図鑑データの非同期読み込みを実行
-        await loadMonstersJSON();
-    });
+    function goToScene(sceneId) {
+        document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+        document.getElementById(sceneId).classList.add('active');
+    }
 
-    /**
-     * 5. モンスター図鑑データ (monsters.json) を非同期でプリロード
-     */
-    async function loadMonstersJSON() {
-        try {
-            // Version3階層ルールに基づき、/data/monsters.json からロード
-            const response = await fetch('data/monsters.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+    function registerName() {
+        const inputName = document.getElementById('username-input').value.trim();
+        if(inputName !== "") {
+            playerName = inputName;
+        }
+        goToScene('scene-prologue');
+    }
+
+    function startAdventure() {
+        goToScene('scene-gameplay');
+        currentStep = 1;
+        advanceStory();
+    }
+
+    function advanceStory() {
+        const bg = document.getElementById('game-bg');
+        const speaker = document.getElementById('dialogue-speaker');
+        const text = document.getElementById('dialogue-text');
+        const micInstruction = document.getElementById('mic-instruction');
+        const voiceInput = document.getElementById('simulated-voice-input');
+        const pSprite = document.getElementById('sprite-pico');
+        const kSprite = document.getElementById('sprite-kong');
+
+        voiceInput.value = "";
+
+        switch(currentStep) {
+            case 1:
+                bg.style.backgroundColor = "#555";
+                bg.innerText = "背景イメージ: 都会の朝 (morning_01.png)";
+                speaker.className = "speaker-name";
+                speaker.innerText = "ナレーション";
+                text.innerText = "都会の朝、あなたは「謎のメッセージ（Go to the forest.）」と「古びた地図」を発見した。";
+                
+                setTimeout(() => { 
+                    bg.style.backgroundColor = "#444";
+                    bg.innerText = "背景イメージ: 都会 ➔ 郊外";
+                    text.innerText = "地図に従い、景色は都会から郊外、そして田舎道へと目まぐるしく変わっていく..."; 
+                }, 2000);
+                
+                setTimeout(() => { 
+                    bg.style.backgroundColor = "#1e331e";
+                    bg.innerText = "背景イメージ: 森の奥深く";
+                    text.innerText = "森の奥深くに進むと、そこには電池切れで完全に眠っているロボット「ピコ」が倒れていた。"; 
+                    pSprite.style.display = "flex";
+                    pSprite.style.opacity = "0.4";
+                    document.getElementById('pico-status').innerText = "[C001: 電池切れ]";
+                    
+                    setTimeout(() => {
+                        currentStep = 2;
+                        advanceStory();
+                    }, 2500);
+                }, 4000);
+                break;
+
+            case 2:
+                speaker.innerText = "システム";
+                text.innerText = "ピコを起動させるために、声を届ける魔法を使おう。";
+                micInstruction.innerText = "画面の指示: Say 'Hello' ! と入力して発話ボタンを押してください";
+                break;
+
+            case 3:
+                pSprite.style.opacity = "1.0";
+                document.getElementById('pico-status').innerText = "[C001: 起動・全肯定モード]";
+                speaker.className = "speaker-name pico";
+                speaker.innerText = "ピコ";
+                text.innerText = "「マスター！起動成功だよ！これからよろしくね！」（ピコはあなたをマスターと呼び、全肯定している！）";
+                micInstruction.innerText = "進むには何か文字を入力して「発話」を押してください";
+                break;
+
+            case 4:
+                kSprite.style.display = "flex";
+                bg.style.backgroundColor = "#2d1a1a";
+                bg.innerText = "背景イメージ: 地鳴りのする森";
+                speaker.className = "speaker-name";
+                speaker.innerText = "ナレーション";
+                text.innerText = "突如、激しい地鳴りとともに、頭部に角が生えた巨大なゴリラモンスター「コング」が立ち塞がった！";
+                
+                setTimeout(() => {
+                    speaker.className = "speaker-name kong";
+                    speaker.innerText = "コング";
+                    text.innerText = '"WHERE ARE YOU FROM!?" (圧倒的な大迫力で威圧してきた！)';
+                    
+                    setTimeout(() => {
+                        speaker.className = "speaker-name pico";
+                        speaker.innerText = "ピコ";
+                        text.innerText = "「マスター！思い切って 'Japan' って叫ぶんだ！」";
+                        micInstruction.innerText = "マイク指示: 'Japan' と入力して発話ボタンを押してください";
+                        currentStep = 5;
+                    }, 2500);
+                }, 2000);
+                break;
+
+            case 5:
+                break;
+
+            case 6:
+                bg.innerText = "背景イメージ: コング大号泣";
+                speaker.className = "speaker-name kong";
+                speaker.innerText = "コング";
+                text.innerText = '"My body is so big. But I am very shy. I want friends. But I say something, people go away... why?" \n\n(コングは滝のような涙を流して大号泣している！本当は友達が欲しかったようだ。)';
+                micInstruction.innerText = "進むには何か文字を入力して「発話」を押してください";
+                break;
+
+            case 7:
+                speaker.className = "speaker-name kong";
+                speaker.innerText = "コング";
+                text.innerText = '"What\'s your name?" (コングは泣き止み、心を開いて名前を尋ねてきた。)';
+                micInstruction.innerText = `あなたの登録名 '${playerName}' と入力して発話ボタンを押してください`;
+                break;
+
+            case 8:
+                speaker.className = "speaker-name kong";
+                speaker.innerText = "コング";
+                text.innerText = `"${playerName}! Friend!? Are you my friend?" (あなたの名前を呼び、友達になれるか聞いてきた！)`;
+                micInstruction.innerText = "マイク指示: 'Yes!' と入力して発話ボタンを押してください";
+                break;
+
+            case 9:
+                speaker.className = "speaker-name kong";
+                speaker.innerText = "コング";
+                text.innerText = '"My friend! Let\'s go!" (俺の友達！さあ行こうぜ！)';
+                
+                setTimeout(() => {
+                    speaker.className = "speaker-name";
+                    speaker.innerText = "システム";
+                    text.innerText = "🎵 感動のファンファーレが響き渡る！\nコングが心強い仲間（C002 コング）としてパーティに加わった！";
+                    document.getElementById('kong-title').innerText = "コング (C002)";
+                    document.getElementById('kong-status').innerText = "[仲間・加入済]";
+                    
+                    setTimeout(() => {
+                        currentStep = 10;
+                        advanceStory();
+                    }, 3500);
+                }, 2000);
+                break;
+
+            case 10:
+                bg.style.backgroundColor = "#0b0f19"; 
+                bg.innerText = "背景イメージ: 夜の森 (bg_camp_01.png)";
+                document.getElementById('game-blue-filter').style.display = "block"; 
+                
+                document.getElementById('kong-status').innerText = "[08番: 睡眠ポーズ]";
+                kSprite.style.transform = "rotate(90deg) translateY(40px)"; 
+                document.getElementById('kong-zzz').style.display = "block";
+                
+                document.getElementById('pico-status').innerText = "[C001: 見守り中]";
+                
+                speaker.className = "speaker-name pico";
+                speaker.innerText = "ピコ";
+                text.innerText = `「マスター、コングも寝ちゃったね。今日はお疲れ様！明日もサバイバル・イングリッシュで最高の冒険にしようね。おやすみ、マスター！」`;
+                
+                micInstruction.innerText = "🎉 【S001 クリア】すべてのシステム仕様が正常に実行されました。";
+                document.getElementById('mic-input-area').style.display = "none";
+                document.getElementById('mic-status-text').style.color = "#00ffcc";
+                document.getElementById('mic-status-text').innerText = "🏁 STAGE CLEAR";
+                break;
+        }
+    }
+
+    function processVoiceInput() {
+        const input = document.getElementById('simulated-voice-input').value.trim();
+        
+        if (currentStep === 2) {
+            if (input.toLowerCase() === "hello") {
+                currentStep = 3;
+                advanceStory();
+            } else {
+                alert("ピコに声をかけましょう。 'Hello' と入力してください。");
             }
-            gameState.monstersData = await response.json();
-            gameState.isLoaded = true;
-            console.log("【System】monsters.json を正常にロードしました。総数:", gameState.monstersData.length);
-            console.log("【Data Sample】ID 01 Target:", gameState.monstersData[0].target_category);
-        } catch (error) {
-            console.error("【Error】monsters.json の読み込みに失敗しました。パス設定（/data/monsters.json）を確認してください。:", error);
-            // 開発用フェイルセーフ：通信エラー時も動作が止まらないよう空配列を代入
-            gameState.monstersData = [];
+        } 
+        else if (currentStep === 3) {
+            currentStep = 4;
+            advanceStory();
         }
-    }
-
-    /**
-     * ① タイトルからゲーム画面への遷移
-     */
-    function startGameContent() {
-        console.log("【Router】startGameContent() triggered.");
-        showScreen('screen-game');
-        runSceneRouter();
-    }
-
-    /**
-     * 画面切り替えロジック
-     */
-    function showScreen(screenId) {
-        // 全スクリーンを非アクティブ化
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        // 指定したスクリーンをアクティブ化
-        const targetScreen = document.getElementById(screenId);
-        if (targetScreen) {
-            targetScreen.classList.add('active');
-            console.log(`【UI】Screen switched to: ${screenId}`);
-        }
-    }
-
-    /**
-     * シラウタRouter（ストーリー展開のコア）
-     */
-    function runSceneRouter() {
-        console.log("【Router】runSceneRouter() active. Index:", gameState.currentSceneIndex);
-        
-        // 背景画像の強制割当テスト（Version3のパス規則に準拠）
-        const bgLayer = document.getElementById("bg-layer");
-        bgLayer.style.backgroundImage = "url('images/backgrounds/morning_01.png')";
-        
-        console.log("【Render】bg-layer.style.backgroundImage に画像をセットしました。");
-    }
-
-    /**
-     * 3. UI/UX仕様に基づく 音声認識モックテスト関数
-     */
-    function testTriggerSpeech() {
-        const indicator = document.getElementById('listening-indicator');
-        const voiceBox = document.getElementById('user-voice-box');
-        const picoBox = document.getElementById('pico-guide-box');
-
-        // 🔴 認識中インジケーターの明示 (recognition.onstart 擬似)
-        indicator.style.display = 'block';
-        picoBox.innerText = "ピコ：「知っている『果物』の名前を言ってあげよう！1つずつ、ゆっくりね！」";
-        
-        // 3.5秒のポーズ時間および発話待ちをシミュレート（1.5秒後に結果表示）
-        setTimeout(() => {
-            // 認識終了に伴うインジケーター消去 (recognition.onend 擬似)
-            indicator.style.display = 'none';
-            
-            // 大掃除ロジック通過後のテキスト（toLowerCase想定）
-            const mockRecognizedText = "apple"; 
-            
-            voiceBox.style.display = 'block';
-            voiceBox.innerText = `あなたの声：${mockRecognizedText}`;
-            
-            // 合否フィードバックの提示
-            picoBox.innerHTML = "✅ <strong>Great!</strong><br>フルーツ・モンスター：「ウマウマ！(Smile)」";
-        }, 1500);
-    }
-
-    /**
-     * ④〜⑦ 原因究明用：自動診断（Diagnostics）スクリプト
-     * ブラウザのコンソールに現在のDOM状態を詳細に出力します。
-     */
-    function runDiagnostics() {
-        console.log("======================================");
-        console.log("👑 【Eigo DE Quest】描画レイヤー自動診断");
-        console.log("======================================");
-
-        const bgLayer = document.getElementById('bg-layer');
-        if (!bgLayer) {
-            console.error("❌ 診断結果：#bg-layer がDOM上に存在しません！");
-            return;
-        }
-
-        // 検証ポイント①：style属性の直接確認
-        const inlineBg = bgLayer.style.backgroundImage;
-        console.log("【④ 検証】style.backgroundImage (インライン値):", inlineBg || "空っぽ（設定されていません）");
-
-        // 検証ポイント②：計算された最終スタイルの確認
-        const computedBg = getComputedStyle(bgLayer).backgroundImage;
-        console.log("【⑥ 検証】getComputedStyle.backgroundImage (最終適用値):", computedBg);
-
-        // 検証ポイント③：レイヤーのサイズ（BoundingClientRect）確認
-        const rect = bgLayer.getBoundingClientRect();
-        console.log(`【⑥ 検証】サイズ確認 -> 幅: ${rect.width}px, 高さ: ${rect.height}px`);
-        if (rect.width === 0 || rect.height === 0) {
-            console.warn("⚠️ 警告：#bg-layer のサイズが0になっています。CSSの絶対配置(absolute/top/left)を確認してください。");
-        }
-
-        // 検証ポイント④：スクリーンの背景色確認（遮蔽問題の特定）
-        const gameScreen = document.getElementById('screen-game');
-        if (gameScreen) {
-            const screenBg = getComputedStyle(gameScreen).backgroundColor;
-            console.log("【⑤ 検証】#screen-game の背景色:", screenBg);
-            if (screenBg !== "rgba(0, 0, 0, 0)" && screenBg !== "transparent") {
-                console.warn("⚠️ 警告：ゲームスクリーン自体に背景色が設定されているため、後ろの背景レイヤーが隠れている可能性があります！");
+        else if (currentStep === 5) {
+            if (input.toLowerCase() === "japan") {
+                currentStep = 6;
+                advanceStory();
+            } else {
+                alert("ピコ「マスター！思い切って 'Japan' って叫ぶんだ！」");
             }
         }
-        console.log("======================================");
+        else if (currentStep === 6) {
+            currentStep = 7;
+            advanceStory();
+        }
+        else if (currentStep === 7) {
+            if (input.toLowerCase() === playerName.toLowerCase()) {
+                currentStep = 8;
+                advanceStory();
+            } else {
+                alert(`コングに伝えるあなたの名前（ ${playerName} ）を入力してください。`);
+            }
+        }
+        else if (currentStep === 8) {
+            if (input.toLowerCase() === "yes") {
+                currentStep = 9;
+                advanceStory();
+            } else {
+                alert("コングに 'Yes' と答えてあげましょう！");
+            }
+        }
     }
 </script>
 
