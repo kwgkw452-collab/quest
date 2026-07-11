@@ -11,9 +11,9 @@
 
         #game-container { position: relative; width: 100%; height: 100%; max-width: 1024px; max-height: 768px; margin: 0 auto; background-color: #111; overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
 
-        /* --- 背景・エフェクトレイヤー --- */
-        .bg-layer { position: absolute; width: 100%; height: 100%; background-size: cover; background-position: center; transition: background 1s ease, filter 1s ease; z-index: 1; }
-        .night-filter { filter: cubic-bezier(0.1, 0.8, 0.3, 1) brightness(0.4) sepia(0.2) hue-rotate(190deg) saturate(1.2); }
+        /* --- 背景・エフェクトレイヤー（画像未ロード時の暫定カラー付） --- */
+        .bg-layer { position: absolute; width: 100%; height: 100%; background-size: cover; background-position: center; background-repeat: no-repeat; background-color: #1a2a1a; transition: background 0.8s ease, filter 0.8s ease; z-index: 1; }
+        .night-filter { filter: brightness(0.3) sepia(0.3) hue-rotate(190deg) saturate(1.2); }
         .flash-red { animation: flashRedAnim 0.3s ease 2; }
         @keyframes flashRedAnim { 0%, 100% { background-color: transparent; } 50% { background-color: rgba(255, 0, 0, 0.4); } }
 
@@ -28,9 +28,10 @@
         @keyframes crawlAnim { 0% { top: 100%; } 100% { top: -150%; } }
 
         /* --- プロローグ・ユーザー登録共通UI --- */
-        .glass-panel { background: rgba(0, 0, 0, 0.75); border: 2px solid #ffd700; border-radius: 15px; padding: 30px; max-width: 600px; text-align: center; backdrop-filter: blur(5px); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .glass-panel { background: rgba(0, 0, 0, 0.85); border: 2px solid #ffd700; border-radius: 15px; padding: 30px; max-width: 600px; text-align: center; backdrop-filter: blur(5px); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .glass-panel h2 { color: #ffd700; margin-bottom: 15px; font-size: 22px; }
         .glass-panel p { font-size: 16px; line-height: 1.6; margin-bottom: 20px; text-align: left; }
+        .prologue-scroll { max-height: 250px; overflow-y: auto; padding-right: 10px; margin-bottom: 20px; text-align: left; border-bottom: 1px solid #333; }
         input[type="text"] { width: 80%; padding: 12px; font-size: 18px; border-radius: 8px; border: 2px solid #ffd700; background: #222; color: #fff; text-align: center; margin-bottom: 20px; outline: none; }
         .btn-prime { background: linear-gradient(135deg, #ffd700, #ffaa00); color: #000; font-weight: bold; padding: 12px 35px; border: none; border-radius: 25px; font-size: 18px; cursor: pointer; box-shadow: 0 5px 15px rgba(255,215,0,0.4); transition: transform 0.2s; }
         .btn-prime:hover { transform: scale(1.05); }
@@ -43,22 +44,22 @@
         .char-name-tag { background: rgba(0,0,0,0.8); border: 1px solid #fff; padding: 3px 12px; border-radius: 10px; font-size: 14px; margin-top: 5px; font-weight: bold; }
         
         /* Zzz... エフェクト */
-        .zzz-effect { position: absolute; top: -30px; font-size: 24px; color: #00ffff; font-weight: bold; animation: zzzAnim 2s infinite linear; display: none; }
-        @keyframes zzzAnim { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-30px) scale(1.2); opacity: 0; } }
+        .zzz-effect { position: absolute; top: -30px; font-size: 28px; color: #00ffff; font-weight: bold; animation: zzzAnim 2s infinite linear; display: none; }
+        @keyframes zzzAnim { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-40px) scale(1.3); opacity: 0; } }
 
         /* メッセージボックス */
-        .msg-box { position: relative; width: 94%; background: rgba(10, 15, 30, 0.9); border: 3px solid #4a90e2; border-radius: 12px; padding: 20px 25px; margin-bottom: 3%; z-index: 10; cursor: pointer; min-height: 120px; box-shadow: 0 5px 20px rgba(0,0,0,0.6); }
+        .msg-box { position: relative; width: 94%; background: rgba(10, 15, 30, 0.95); border: 3px solid #4a90e2; border-radius: 12px; padding: 20px 25px; margin-bottom: 3%; z-index: 10; cursor: pointer; min-height: 120px; box-shadow: 0 5px 20px rgba(0,0,0,0.6); }
         .msg-name { font-size: 18px; font-weight: bold; color: #4a90e2; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
         .msg-text { font-size: 18px; line-height: 1.6; letter-spacing: 0.05em; }
         .msg-arrow { position: absolute; right: 20px; bottom: 15px; font-size: 14px; color: #4a90e2; animation: bounce 0.8s infinite alternate; }
         @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(5px); } }
 
-        /* --- 音声認識・UIインジケーター（仕様セクション3網ロール） --- */
-        #listening-indicator { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(255, 0, 0, 0.85); color: white; padding: 15px 30px; border-radius: 30px; font-size: 20px; font-weight: bold; z-index: 100; box-shadow: 0 0 20px rgba(255,0,0,0.6); display: none; animation: pulse 1s infinite; }
+        /* --- 音声認識・UIインジケーター --- */
+        #listening-indicator { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(255, 0, 0, 0.9); color: white; padding: 15px 30px; border-radius: 30px; font-size: 20px; font-weight: bold; z-index: 100; box-shadow: 0 0 20px rgba(255,0,0,0.6); display: none; animation: pulse 1s infinite; }
         @keyframes pulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } }
 
         .voice-hud { position: absolute; bottom: 160px; left: 50%; transform: translateX(-50%); width: 90%; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 9; }
-        .hud-bubble { background: rgba(0,0,0,0.8); border: 2px solid #555; padding: 8px 20px; border-radius: 20px; font-size: 16px; min-width: 250px; text-align: center; }
+        .hud-bubble { background: rgba(0,0,0,0.85); border: 2px solid #555; padding: 8px 20px; border-radius: 20px; font-size: 16px; min-width: 250px; text-align: center; }
         #user-voice-display { border-color: #4a90e2; font-weight: bold; display: none; }
         #judgement-display { font-size: 22px; font-weight: bold; display: none; }
         .judg-great { color: #2ecc71; animation: scaleUp 0.3s ease; }
@@ -67,7 +68,6 @@
         @keyframes scaleUp { 0% { transform: scale(0.5); } 100% { transform: scale(1); } }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 
-        /* デバッグ・テスト用スキップボタン（音声認識環境がない場合の一時救済） */
         .debug-skip { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.2); color: #fff; border: none; padding: 5px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; z-index: 200; }
     </style>
 </head>
@@ -105,12 +105,13 @@
     <div id="screen-prologue" class="screen">
         <div class="glass-panel" style="max-width: 650px;">
             <h2>🌟 たいせつな お約束（プロローグ）</h2>
-            <p style="max-height: 300px; overflow-y: auto; padding-right: 10px;">
+            <div class="prologue-scroll">
                 🗣️ <b>【君の声が魔法になる世界へようこそ！】</b><br><br>
-                ここから先は、ワクワクドキドキが止まらない英語の異世界！「英語なんて無理！」って思ってる？ 大規模なデータ復活システムやゲームオーバーは絶対にないから安心していこう！<br><br>
-                最高の相棒ロボット・ピコがいつでも君を助けてくれるよ！ 長い言葉なんていらない。たった２、３語、ピンチの時は「たった１語」の英単語を喋るだけで、それが世界を動かす最大の魔法になる。その魔法こそが『サバイバル・イングリッシュ』なんだ！<br><br>
-                失敗したってへっちゃら！君の言葉だけで、どんなピンチも乗り越えられる。たった一言の勇気が、きっと君を新しく変えてくれる！ まずはその一歩を踏み出して、新しい自分に出会いにいこう。さぁ、大冒険を始めよう！
-            </p>
+                ここから先は、ワクワクドキドキが止まらない英語の異世界！「英語なんて無理！」って思ってる？ 大丈夫、最高の相棒ロボット・ピコがいつでも君を助けてくれるよ！<br><br>
+                長い言葉なんていらない。たった２、３語、ピンチの時は「たった１語」の英単語を喋るだけで、それが世界を動かす最大の魔法になる。その魔法こそが『サバイバル・イングリッシュ』なんだ！<br><br>
+                失敗したってへっちゃら！データ復活やゲームオーバーシステムは絶対にないから、君の言葉だけで思い切ってぶつかってみよう！<br><br>
+                たった一言の勇気が、きっと君を新しく変えてくれる！ まずはその一歩を踏み出して、新しい自分に出会いにいこう。さぁ、大冒険を始めよう！
+            </div>
             <button class="btn-prime" onclick="startGameContent()">冒険を開始する！</button>
         </div>
     </div>
@@ -144,21 +145,19 @@
 </div>
 
 <script>
-    /* --- ゲーム状態管理オブジェクト --- */
+    /* --- ゲーム状態管理 --- */
     const gameState = {
         playerName: "ゆうしゃ",
         currentSceneIndex: 0,
         isWaitingForVoice: false,
-        targetMission: "", // "hello", "japan", "name", "yes"
-        picoAttempts: 0
+        targetMission: ""
     };
 
-    /* --- 将来的な音声mp3実装用拡張関数 (仕様3の重要注意項目) --- */
+    /* --- 将来的な拡張用関数 --- */
     function playAudio(fileName) {
-        console.log(`[Audio Extension] 将来の再生準備完了: images/audio/${fileName}.mp3`);
+        console.log(`[Audio Extension] 将来の音声再生: images/audio/${fileName}.mp3`);
     }
 
-    /* --- 画面遷移処理 --- */
     function showScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
@@ -179,128 +178,110 @@
         runSceneRouter();
     }
 
-    /* --- シナリオ台本データ（S001データストリーム） --- */
+    /* --- シナリオタイムラインデータ型定義 --- */
     const scenarioData = [
-        // 都会の朝から森への景色変化
-        { type: "bg", file: "images/backgrounds/morning_01.png" },
-        { type: "msg", speaker: "ナレーション", text: "都会の爽やかな朝。あなたは机の上で「謎のメッセージ（Go to the forest.）」と「古びた地図」を発見した。" },
-        { type: "msg", speaker: "ナレーション", text: "地図の通りに歩いていくと、景色は都会から郊外、田舎道、そして深い森の中へと目まぐるしく変わっていく……。" },
+        // シーン2: 日常からの移動と景色の切り替え
+        { type: "bg", file: "images/backgrounds/morning_01.png", speaker: "ナレーション", text: "都会の朝。あなたは机の上で「謎のメッセージ（Go to the forest.）」と「古びた地図」を発見した。" },
+        { type: "msg", speaker: "ナレーション", text: "地図の通りに進むと、景色は都会から郊外、田舎道、そして深い森の中へと目まぐるしく変わっていく……。" },
         
         // ピコの発見と起動ミッション
-        { type: "show_char", id: "pico", pose: "01" },
-        { type: "msg", speaker: "ナレーション", text: "森の奥深くで、完全に電池が切れて眠っているような奇妙なロボット「ピコ」を見つけた。" },
-        { type: "mission", speaker: "システム", text: "【ミッション】ピコに向かって元気に「Hello」と語りかけよう！", missionType: "hello" },
+        { type: "show_char", id: "pico", pose: "01", speaker: "ナレーション", text: "森の奥深くで、完全に電池が切れて眠っているロボット「ピコ」を発見した。" },
+        { type: "mission", missionType: "hello", speaker: "システム", text: "【起動ミッション】画面の指示に従い、マイクに向かって「Hello」と言ってみよう！" },
         
         // 相棒契約
-        { type: "pose_char", id: "pico", pose: "02" },
-        { type: "msg", speaker: "ピコ", text: "「ピコーン！ 起動完了だピコ！ はじめまして、マスター！ ボクを動かしてくれてありがとう！」" },
+        { type: "pose_char", id: "pico", pose: "02", speaker: "ピコ", text: "「ピコーン！ 起動完了だピコ！ はじめまして、マスター！ ボクを動かしてくれてありがとう！」" },
         
-        // コングの咆哮
-        { type: "msg", speaker: "ナレーション", text: "――ズズズ、ドスォォォン！！ 地鳴りと共に、頭に大きな角の生えた、見たこともない巨大なゴリラモンスターが立ち塞がった！" },
-        { type: "show_char", id: "kong", pose: "10" }, // 10: 威嚇ポーズ (絶対ルール)
-        { type: "msg", speaker: "コング", text: "「WHERE ARE YOU FROM!!??」" },
-        { type: "pose_char", id: "pico", pose: "03" }, // 驚き
-        { type: "msg", speaker: "ピコ", text: "「ひゃああ！ すっごい迫力だピコ！ マスター、思い切って 'Japan' って叫ぶんだピコ！！」" },
-        { type: "mission", speaker: "システム", text: "【ミッション】マイクに向かって思い切って「Japan」と叫べ！", missionType: "japan" },
+        // シーン3: コングの咆哮とJapanミッション
+        { type: "msg", speaker: "ナレーション", text: "地鳴りとともに、頭に大きな角が生えた巨大なゴリラモンスター「コング」が立ち塞がった！" },
+        { type: "show_char", id: "kong", pose: "10", speaker: "コング", text: "「WHERE ARE YOU FROM!!??」" }, // 10: 威嚇
+        { type: "pose_char", id: "pico", pose: "03", speaker: "ピコ", text: "「ひゃああ！ 大迫力だピコ！ マスター、思い切って 'Japan' って叫ぶんだピコ！！」" },
+        { type: "mission", missionType: "japan", speaker: "システム", text: "【ミッション】コングの威圧に負けず、マイクに向かって「Japan」と叫ぼう！" },
 
-        // 号泣の大どんでん返し
-        { type: "pose_char", id: "kong", pose: "06" }, // 06: 号泣ポーズ (絶対ルール)
-        { type: "msg", speaker: "コング", text: "「My body is so big. But I am very shy. I want friends. But I say something, people go away... why? 😭」" },
-        { type: "msg", speaker: "ピコ", text: "「ええっ！？ 怒ってるんじゃなくて、体が大きすぎてみんなが逃げちゃうのを悲しんで大号泣してたんだピコ……！」" },
+        // シーン4: 号泣と名前の儀式
+        { type: "pose_char", id: "kong", pose: "06", speaker: "コング", text: "「My body is so big. But I am very shy. I want friends. But I say something, people go away... why? 😭」" }, // 06: 号泣
+        { type: "pose_char", id: "pico", pose: "01", speaker: "ピコ", text: "「怒ってるんじゃなくて、体が大きすぎてみんなが逃げちゃうのを悲しんで大号泣してたんだピコ……！」" },
         { type: "msg", speaker: "コング", text: "「ウグッ、ウアァァーン……。……ホロリ。 What's your name?」" },
-        { type: "mission", speaker: "システム", text: "【ミッション】マイクに向かってあなたの「名前（ハンドルネーム）」を名乗ろう！", missionType: "name" },
+        { type: "mission", missionType: "name", speaker: "システム", text: "【ミッション】心を開いてくれたコングに、あなたの「名前」を教えてあげよう！" },
 
-        // 友情の誓い
+        // シーン5: 運命のYes!と仲間合流
         { type: "msg", speaker: "コング", text: "「（name）! Friend!? Are you my friend?」" },
-        { type: "pose_char", id: "pico", pose: "05" }, // ドヤ顔で促す
-        { type: "msg", speaker: "ピコ", text: "「マスター！ 友達になってくれるかって聞いてるピコ！ 力強く 'Yes' って答えよう！」" },
-        { type: "mission", speaker: "システム", text: "【ミッション】マイクに向かって「Yes」と答えよう！", missionType: "yes" },
+        { type: "pose_char", id: "pico", pose: "05", speaker: "ピコ", text: "「マスター！ 友達になってくれるかって聞いてるピコ！ 力強く 'Yes' って答えよう！」" },
+        { type: "mission", missionType: "yes", speaker: "システム", text: "【ミッション】マイクに向かって、笑顔で「Yes」と答えよう！" },
 
-        // 仲間加入・歓喜
-        { type: "pose_char", id: "kong", pose: "01" }, // 01: 通常ポーズ (絶対ルール)
-        { type: "msg", speaker: "コング", text: "「My friend! Let's go! 😆」" },
-        { type: "msg", speaker: "ナレーション", text: "大感動のファンファーレが響き渡る！ 孤独だった巨獣コングが、心強い初めての仲間（C002）になった！" },
+        // 仲間加入
+        { type: "pose_char", id: "kong", pose: "01", speaker: "コング", text: "「My friend! Let's go! 😆」" }, // 01: 通常立ち姿
+        { type: "msg", speaker: "ナレーション", text: "感動のファンファーレが響き渡る！ 孤独だった巨獣コングが、心強い初めての仲間（C002）になった！" },
 
-        // 夜のキャンプ（おやすみ）シーン (仕様6自動合成)
-        { type: "bg_camp", file: "images/backgrounds/bg_camp_01.png" },
-        { type: "pose_char", id: "kong", pose: "08" }, // コングは08睡眠ポーズ
-        { type: "sleep_mode" },
-        { type: "pose_char", id: "pico", pose: "01" }, // ピコは起きたまま
-        { type: "msg", speaker: "ピコ", text: "「初めての言葉の魔法、大成功だったピコね、マスター。コングもすやすや眠ってて嬉しそうだピコ……。明日の冒険も、いっしょにがんばろうね。おやすみ、マスター……（第1話・完）」" }
+        // シーン6: 夜のキャンプ（おやすみ）シーン
+        { type: "bg_camp", file: "images/backgrounds/bg_camp_01.png", speaker: "ナレーション", text: "コングが仲間になった直後、あたりはすっかり暗くなり、静かな夜の森へと変化した。" },
+        { type: "sleep_mode", speaker: "ナレーション", text: "満天の星空の下、初めての友達ができたコングは安心したようにすやすやと眠りについた……。" },
+        { type: "msg", speaker: "ピコ", text: "「初めてのサバイバル・イングリッシュ、大成功だったピコね、マスター！ コングも嬉しそうだピコ。」" },
+        { type: "msg", speaker: "ピコ", text: "「明日の冒険も、ボクたちがついてるピコよ。それじゃあ、おやすみ、マスター……（第1話・完）」" }
     ];
 
-    /* --- メイン・ルーター処理 --- */
+    /* --- シナリオ制御ルーター --- */
     function runSceneRouter() {
         if (gameState.currentSceneIndex >= scenarioData.length) return;
         
         const currentData = scenarioData[gameState.currentSceneIndex];
         
-        switch(currentData.type) {
-            case "bg":
-                document.getElementById('bg-layer').style.backgroundImage = `url('${currentData.file}')`;
-                document.getElementById('bg-layer').classList.remove('night-filter');
-                advanceStep();
-                break;
-                
-            case "bg_camp":
-                document.getElementById('bg-layer').style.backgroundImage = `url('${currentData.file}')`;
-                document.getElementById('bg-layer').classList.add('night-filter'); // 夜の森ブルーフィルター (仕様6)
-                advanceStep();
-                break;
+        // 演出コマンドの先取り実行
+        if (currentData.type === "bg") {
+            document.getElementById('bg-layer').style.backgroundImage = `url('${currentData.file}')`;
+            document.getElementById('bg-layer').classList.remove('night-filter');
+        } 
+        else if (currentData.type === "bg_camp") {
+            document.getElementById('bg-layer').style.backgroundImage = `url('${currentData.file}')`;
+            document.getElementById('bg-layer').classList.add('night-filter'); // ブルーフィルターの適用
+        } 
+        else if (currentData.type === "show_char") {
+            const container = document.getElementById(`container-${currentData.id}`);
+            container.style.display = "flex";
+            document.getElementById(`img-${currentData.id}`).src = `images/characters/${currentData.id}_${currentData.pose}.png`;
+        } 
+        else if (currentData.type === "pose_char") {
+            document.getElementById(`img-${currentData.id}`).src = `images/characters/${currentData.id}_${currentData.pose}.png`;
+        } 
+        else if (currentData.type === "sleep_mode") {
+            // コングの睡眠ポーズ変更とZzz演出の同期化
+            document.getElementById('img-kong').src = "images/characters/kong_08.png";
+            document.getElementById('zzz-kong').style.display = "block";
+        }
 
-            case "show_char":
-                const targetContainer = document.getElementById(`container-${currentData.id}`);
-                targetContainer.style.display = "flex";
-                document.getElementById(`img-${currentData.id}`).src = `images/characters/${currentData.id}_${currentData.pose}.png`;
-                advanceStep();
-                break;
+        // テキストと話者の更新
+        gameState.isWaitingForVoice = false;
+        document.getElementById('msg-speaker').innerText = currentData.speaker;
+        let processedText = currentData.text || "";
+        processedText = processedText.replace("（name）", gameState.playerName);
+        document.getElementById('msg-body').innerText = processedText;
 
-            case "pose_char":
-                document.getElementById(`img-${currentData.id}`).src = `images/characters/${currentData.id}_${currentData.pose}.png`;
-                advanceStep();
-                break;
-
-            case "sleep_mode":
-                document.getElementById('zzz-kong').style.display = "block"; // Zzz...を浮かべる (仕様6)
-                advanceStep();
-                break;
-
-            case "msg":
-                gameState.isWaitingForVoice = false;
-                document.getElementById('msg-speaker').innerText = currentData.speaker;
-                // コングの名前呼びセリフ対応
-                let processedText = currentData.text.replace("（name）", gameState.playerName);
-                document.getElementById('msg-body').innerText = processedText;
-                break;
-
-            case "mission":
-                document.getElementById('msg-speaker').innerText = currentData.speaker;
-                document.getElementById('msg-body').innerText = currentData.text;
-                gameState.targetMission = currentData.missionType;
-                gameState.isWaitingForVoice = true;
-                
-                // 仕様4：3.5秒のポーズ（急かさず自発的に考えさせる待機時間）
-                setTimeout(() => {
-                    if(gameState.isWaitingForVoice && gameState.targetMission === currentData.missionType) {
-                        startVoiceRecognition();
-                    }
-                }, 3500);
-                break;
+        // ミッション制御
+        if (currentData.type === "mission") {
+            gameState.targetMission = currentData.missionType;
+            gameState.isWaitingForVoice = true;
+            
+            // 仕様書通り、3.5秒の思考のポーズをとってからマイクをオンにする
+            setTimeout(() => {
+                if(gameState.isWaitingForVoice && gameState.targetMission === currentData.missionType) {
+                    startVoiceRecognition();
+                }
+            }, 3500);
         }
     }
 
     function advanceStep() {
         gameState.currentSceneIndex++;
-        runSceneRouter();
+        if (gameState.currentSceneIndex < scenarioData.length) {
+            runSceneRouter();
+        }
     }
 
     function onMessageBoxClick() {
-        // 音声入力待ち状態の時はクリックでの進行を禁止する
-        if (gameState.isWaitingForVoice) return;
+        if (gameState.isWaitingForVoice) return; // 音声待ちの時はクリック無効化
         advanceStep();
     }
 
-    /* --- 音声認識コアシステム (仕様2, 3, 4) --- */
+    /* --- 音声認識コアロジック --- */
     let recognition = null;
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -308,57 +289,41 @@
         recognition.continuous = false;
         recognition.interimResults = false;
 
-        // 音声認識開始時 (仕様3インジケーターON)
         recognition.onstart = function() {
             document.getElementById('listening-indicator').style.display = "block";
         };
 
-        // 音声認識終了時 (仕様3インジケーターOFF)
         recognition.onend = function() {
             document.getElementById('listening-indicator').style.display = "none";
         };
 
-        // 音声認識結果受信
         recognition.onresult = function(event) {
             const rawResult = event.results[0][0].transcript;
             processVoiceInput(rawResult);
         };
 
-        // エラーハンドリング（無音等もセーフティネットへ回す）
         recognition.onerror = function(event) {
-            console.log("Speech recognition error:", event.error);
+            console.log("Voice Recognition Error:", event.error);
             triggerSafetyNet();
         };
     }
 
     function startVoiceRecognition() {
-        if (!recognition) {
-            console.log("このブラウザはSpeechRecognitionに対応していません。テストボタンを使用してください。");
-            return;
-        }
-        // ミッションタイプに応じて認識言語を動的にスイッチ
+        if (!recognition) return;
         recognition.lang = (gameState.targetMission === "name") ? "ja-JP" : "en-US";
-        
-        try {
-            recognition.start();
-        } catch(e) {
-            console.log("Recognition already running:", e);
-        }
+        try { recognition.start(); } catch(e) {}
     }
 
-    /* --- 大掃除ロジック ＆ 判定機構 (仕様2, 4) --- */
+    /* --- 大掃除ロジック ＆ 包括的判定機構 --- */
     function processVoiceInput(rawText) {
-        // 仕様2：すべて小文字化し、記号を排除
         let cleanText = rawText.toLowerCase().replace(/[\.\,\?\!\-\_\s]/g, "");
         
-        // 仕様3：認識結果のテキスト画面表示
         const voiceHUD = document.getElementById('user-voice-display');
         voiceHUD.innerText = `あなたの声：${rawText}`;
         voiceHUD.style.display = "block";
 
         let isCorrect = false;
 
-        // 仕様4：部分一致(includes)とカタカナ網羅
         if (gameState.targetMission === "hello") {
             const acceptWords = ["hello", "herro", "ハロー", "はろー", "しろー"];
             isCorrect = acceptWords.some(w => cleanText.includes(w));
@@ -368,18 +333,14 @@
             isCorrect = acceptWords.some(w => cleanText.includes(w));
         } 
         else if (gameState.targetMission === "name") {
-            // 名前ミッションは何を発言しても、全肯定で受け入れる仕様
-            isCorrect = true;
-            if(rawText.trim() !== "") {
-                gameState.playerName = rawText; // 本人のリアル発話名前にアップデート
-            }
+            isCorrect = true; // 名前は発話があれば何でも全肯定
+            if(rawText.trim() !== "") gameState.playerName = rawText;
         } 
         else if (gameState.targetMission === "yes") {
             const acceptWords = ["yes", "ies", "イエス", "いえす"];
             isCorrect = acceptWords.some(w => cleanText.includes(w));
         }
 
-        // 合否フィードバック表示 (仕様3)
         const judgHUD = document.getElementById('judgement-display');
         judgHUD.style.display = "block";
 
@@ -389,9 +350,7 @@
             playAudio("success_jingle");
             
             gameState.isWaitingForVoice = false;
-            gameState.picoAttempts = 0;
             
-            // 1.8秒後に次へ進行
             setTimeout(() => {
                 judgHUD.style.display = "none";
                 voiceHUD.style.display = "none";
@@ -403,38 +362,30 @@
             document.getElementById('effect-layer').classList.add('flash-red');
             setTimeout(() => document.getElementById('effect-layer').classList.remove('flash-red'), 400);
             
-            setTimeout(() => {
-                triggerSafetyNet();
-            }, 1000);
+            setTimeout(() => { triggerSafetyNet(); }, 1200);
         }
     }
 
-    /* --- 完全セーフティネット（無限の全肯定） (仕様4) --- */
+    /* --- 無限全肯定セーフティネット --- */
     function triggerSafetyNet() {
         document.getElementById('judgement-display').style.display = "none";
-        gameState.isWaitingForVoice = true;
-
-        let hintMessage = "";
-        if (gameState.targetMission === "hello") hintMessage = "「ハロー」って口の前に手をあてて言ってみよう！";
-        if (gameState.targetMission === "japan") hintMessage = "「ジャパン」って思い切ってお腹から声を出すピコ！";
-        if (gameState.targetMission === "yes") hintMessage = "「イエス！」って元気にうなずきながら叫ぶピコ！";
-
-        // AIロボット側のせいにしてユーザーを100%守る全肯定台詞
-        document.getElementById('msg-speaker').innerText = "ピコ";
-        document.getElementById('msg-body').innerText = `「ピコの辞書に入ってない言葉だったみたい！ポンコツでごめんね！もう一回教えて！${hintMessage}」`;
         
-        // メッセージ表示後に再度3.5秒おいてからマイクを再点火するループ構造
+        let hint = "";
+        if (gameState.targetMission === "hello") hint = "「ハロー」って優しく言ってみよう！";
+        if (gameState.targetMission === "japan") hint = "「ジャパン」って思い切って叫ぶピコ！";
+        if (gameState.targetMission === "yes") hint = "「イエス！」って元気に言ってみよう！";
+
+        document.getElementById('msg-speaker').innerText = "ピコ";
+        document.getElementById('msg-body').innerText = `「ピコの辞書に入ってない言葉だったみたい！ポンコツでごめんね！もう一回教えて！${hint}」`;
+        
         setTimeout(() => {
-            if(gameState.isWaitingForVoice) {
-                startVoiceRecognition();
-            }
+            if(gameState.isWaitingForVoice) startVoiceRecognition();
         }, 4000);
     }
 
-    /* --- テスト・デバッグ用救済関数（マイクなし環境用シミュレータ） --- */
+    /* --- テスト用パス機能 --- */
     function forceSpeechSuccess() {
         if (!gameState.isWaitingForVoice) return;
-        console.log("[Debug] 強制パスボタンが押されました。");
         if (gameState.targetMission === "hello") processVoiceInput("Hello");
         if (gameState.targetMission === "japan") processVoiceInput("Japan");
         if (gameState.targetMission === "name") processVoiceInput(gameState.playerName);
