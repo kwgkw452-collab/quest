@@ -1,61 +1,534 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>Microphone Test</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Eigo DE Quest - S001 Prototype</title>
+    <style>
+        /* === ベーススタイル（全画面・黒背景のRPG仕様） === */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #111;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: #fff;
+        }
+
+        /* === ゲームコンテナ（レスポンシブ・アスペクト比固定用） === */
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 480px;
+            max-height: 854px;
+            margin: 0 auto;
+            background-color: #222;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            border: 2px solid #333;
+        }
+
+        /* === ステージ画面（上部） === */
+        #stage-area {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            background: linear-gradient(to bottom, #4a75a0, #2a4d6c); /* 初期：昼の森イメージ */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 1.0s ease;
+        }
+        /* 夜の森フィルター */
+        #stage-area.night {
+            background: linear-gradient(to bottom, #0f172a, #1e1b4b) !important;
+        }
+
+        /* キャラクター・モンスター配置 */
+        .character-slot {
+            position: absolute;
+            bottom: 20px;
+            width: 120px;
+            height: 160px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        #pico-slot { left: 20px; }
+        #monster-slot { right: 20px; }
+
+        .char-img {
+            width: 100%;
+            height: auto;
+            max-height: 130px;
+            object-fit: contain;
+            filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.5));
+        }
+        /* 未討伐シルエット用 */
+        .silhouette {
+            filter: brightness(0) !important;
+        }
+
+        .char-name {
+            background: rgba(0,0,0,0.7);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-top: 4px;
+            border: 1px solid #555;
+        }
+
+        /* Zzz... エフェクト */
+        #zzz-effect {
+            position: absolute;
+            left: 60px;
+            bottom: 140px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #a5f3fc;
+            animation: floatZ 2s infinite ease-in-out;
+            display: none;
+        }
+        @keyframes floatZ {
+            0% { transform: translateY(0) scale(0.8); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-30px) scale(1.2); opacity: 0; }
+        }
+
+        /* === UIインジケーター（マイクの不安ゼロ仕様） === */
+        #listening-indicator {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.7);
+            display: none;
+            z-index: 100;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.05); }
+            100% { opacity: 0.8; }
+        }
+
+        /* === テキスト＆コントロールエリア（下部） === */
+        #ui-area {
+            background: #111;
+            border-top: 4px solid #444;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 240px;
+        }
+
+        /* メッセージウィンドウ */
+        #message-box {
+            background: #1e1e1e;
+            border: 2px solid #555;
+            border-radius: 8px;
+            padding: 12px;
+            height: 100px;
+            font-size: 15px;
+            line-height: 1.5;
+            overflow-y: auto;
+            word-break: break-all;
+        }
+
+        /* 音声認識結果表示 */
+        #result-box {
+            font-size: 13px;
+            color: #9ca3af;
+            min-height: 20px;
+            padding-left: 4px;
+        }
+        .voice-text { color: #38bdf8; font-weight: bold; }
+
+        /* フィードバック表示（Great! / ❌） */
+        #feedback-box {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            min-height: 28px;
+        }
+        .fb-great { color: #4ade80; animation: bounce 0.5s; }
+        .fb-miss { color: #f87171; }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* ボタンエリア */
+        #button-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            background: linear-gradient(to bottom, #3b82f6, #1d4ed8);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1e3a8a;
+            flex: 1;
+            transition: transform 0.1s;
+        }
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        .btn:disabled {
+            background: #4b5563;
+            box-shadow: 0 4px 0 #374151;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .btn-mic {
+            background: linear-gradient(to bottom, #ef4444, #b91c1c);
+            box-shadow: 0 4px 0 #7f1d1d;
+        }
+    </style>
 </head>
 <body>
 
-<h1>マイクテスト</h1>
+<div id="game-container">
+    
+    <div id="stage-area" id="stage-area">
+        <div id="listening-indicator">🔴 音声認識中（LISTENING...）</div>
+        
+        <div class="character-slot" id="pico-slot">
+            <div id="zzz-effect">Zzz...</div>
+            <img id="pico-img" class="char-img" src="assets/pico_01.png" alt="ピコ">
+            <div class="char-name">ピコ</div>
+        </div>
 
-<button id="startBtn">マイク開始</button>
+        <div class="character-slot" id="monster-slot">
+            <img id="monster-img" class="char-img silhouette" src="assets/kong_01.png" alt="???">
+            <div id="monster-name" class="char-name">？？？</div>
+        </div>
+    </div>
 
-<div id="result"></div>
+    <div id="ui-area">
+        <div id="message-box"></div>
+        
+        <div id="result-box">あなたの声： <span id="speech-text">---</span></div>
+        
+        <div id="feedback-box"></div>
+        
+        <div id="button-container">
+            <button id="next-btn" class="btn">次に進む</button>
+            <button id="mic-btn" class="btn btn-mic" style="display: none;">🎤 こたえる</button>
+        </div>
+    </div>
+
+</div>
 
 <script>
+    /* ==========================================================================
+       1. グローバル設定＆システム変数
+       ========================================================================== */
+    // 将来的な音声ファイル（mp3）追加に対応できる拡張構造
+    const AUDIO_SYSTEM = {
+        enabled: false, // 現行仕様では音声再生は行わない（テキストのみ）
+        playVoice: function(filename) {
+            if (!this.enabled) return;
+            console.log(`[将来拡張用] 再生音声: assets/audio/${filename}.mp3`);
+            // 例: let audio = new Audio(`assets/audio/${filename}.mp3`); audio.play();
+        },
+        playBgm: function(filename) {
+            if (!this.enabled) return;
+            console.log(`[将来拡張用] BGM開始: assets/audio/${filename}.mp3`);
+        }
+    };
 
-const SpeechRecognition =
-window.SpeechRecognition ||
-window.webkitSpeechRecognition;
+    // シナリオ進行・ステート管理
+    let currentStep = 0;
+    let isListening = false;
+    let safetyNetCount = 0; // 全肯定セーフティネットの回数カウンター
 
-if (!SpeechRecognition) {
-alert("このブラウザは音声認識に対応していません");
-}
+    // 第1話正解キーワード（部分一致（includes）＋カタカナ網羅配列仕様）
+    const S001_KEYWORDS = [
+        'apple', 'apples', 'an apple', 
+        'あっぷる', 'アップル', 'あぷる', 
+        'りんご', 'リンゴ', '林檎'
+    ];
 
-const recognition = new SpeechRecognition();
+    // 相槌（クジ引き再生用）配列
+    const PICO_REACTIONS = [
+        "ワオ！最高だね！",
+        "素晴らしい！ピコも嬉しくなっちゃう！",
+        "いいねいいね！その調子だよ！"
+    ];
 
-recognition.lang = "en-US";
-recognition.continuous = false;
-recognition.interimResults = false;
+    // DOM要素の取得
+    const elBox = document.getElementById('message-box');
+    const elSpeech = document.getElementById('speech-text');
+    const elFeedback = document.getElementById('feedback-box');
+    const elNextBtn = document.getElementById('next-btn');
+    const elMicBtn = document.getElementById('mic-btn');
+    const elIndicator = document.getElementById('listening-indicator');
+    const elPicoImg = document.getElementById('pico-img');
+    const elMonsterImg = document.getElementById('monster-img');
+    const elMonsterName = document.getElementById('monster-name');
+    const elStage = document.getElementById('stage-area');
+    const elZzz = document.getElementById('zzz-effect');
 
-recognition.onstart = () => {
-console.log("認識開始");
-};
 
-recognition.onend = () => {
-console.log("認識終了");
-};
+    /* ==========================================================================
+       2. Web Speech API 音声認識エンジン初期化 (Version3確定版)
+       ========================================================================== */
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
 
-recognition.onresult = (event) => {
-const text = event.results[0][0].transcript;
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'en-US'; // 英語ベースで認識（日本語カタカナも一部吸収可能）
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
 
-document.getElementById("result").innerText =
-"認識結果: " + text;
-};
+        // 🔴 認識開始時のUI明示
+        recognition.onstart = () => {
+            isListening = true;
+            elIndicator.style.display = 'block';
+            elFeedback.innerHTML = '';
+            elSpeech.innerText = 'きいているよ...';
+        };
 
-recognition.onerror = (event) => {
-console.log("エラー:", event.error);
-};
+        // 🔴 認識終了時の消去
+        recognition.onend = () => {
+            isListening = false;
+            elIndicator.style.display = 'none';
+            elMicBtn.disabled = false;
+        };
 
-document.getElementById("startBtn").addEventListener("click", () => {
-try {
-recognition.start();
-} catch (e) {
-console.log(e);
-}
-});
+        // 認識成功時の大掃除ロジック＆合否フィードバック
+        recognition.onresult = (event) => {
+            let rawText = event.results[0][0].transcript;
+            
+            // 【大掃除ロジック】すべて小文字化し、記号を完全排除
+            let cleanText = rawText.toLowerCase().replace(/[\.\?\!\,]/g, "").trim();
+            elSpeech.innerHTML = `<span class="voice-text">"${cleanText}"</span>`;
 
+            // 部分一致による合否判定
+            let isCorrect = S001_KEYWORDS.some(keyword => cleanText.includes(keyword));
+
+            if (isCorrect) {
+                handleCorrectAnswer();
+            } else {
+                handleSafetyNet();
+            }
+        };
+
+        // エラーハンドリング（無言だった場合など）
+        recognition.onerror = (event) => {
+            console.log('Speech recognition error:', event.error);
+            handleSafetyNet(); // エラー時も絶対にゲームオーバーにせず全肯定
+        };
+    } else {
+        console.warn('このブラウザはWeb Speech APIに対応していません。');
+    }
+
+
+    /* ==========================================================================
+       3. ゲームロジック＆シナリオ進行
+       ========================================================================== */
+    
+    // アセットポーズ番号変更用ヘルパー関数
+    function changePose(character, poseNumber) {
+        if (character === 'pico') {
+            elPicoImg.src = `assets/pico_${poseNumber}.png`;
+        } else if (character === 'kong') {
+            elMonsterImg.src = `assets/kong_${poseNumber}.png`;
+        }
+    }
+
+    // メッセージ表示関数
+    function showText(text) {
+        elBox.innerText = text;
+    }
+
+    // ログイン・ルーティン模擬処理
+    function runLoginRoutine() {
+        elNextBtn.style.display = 'none';
+        changePose('pico', '02'); // 02: Smile
+        showText("ピコ「How are you feeling today? 今日はどんな気分？」\n（画面下のマイクボタンを押して Happy などと答えてね）");
+        
+        // ログイン用一時判定にスイッチ
+        recognition.onresult = (event) => {
+            let cleanText = event.results[0][0].transcript.toLowerCase().trim();
+            elSpeech.innerHTML = `<span class="voice-text">"${cleanText}"</span>`;
+            
+            // クジ引き相槌再生
+            let randomReaction = PICO_REACTIONS[Math.floor(Math.random() * PICO_REACTIONS.length)];
+            showText(`ピコ「${randomReaction}！」`);
+            
+            // 本来の仕様に戻す
+            restoreDefaultRecognition();
+            
+            setTimeout(() => {
+                currentStep = 1;
+                progressStory();
+            }, 2000);
+        };
+        
+        elMicBtn.style.display = 'block';
+    }
+
+    function restoreDefaultRecognition() {
+        recognition.onresult = (event) => {
+            let cleanText = event.results[0][0].transcript.toLowerCase().replace(/[\.\?\!\,]/g, "").trim();
+            elSpeech.innerHTML = `<span class="voice-text">"${cleanText}"</span>`;
+            let isCorrect = S001_KEYWORDS.some(keyword => cleanText.includes(keyword));
+            if (isCorrect) handleCorrectAnswer(); else handleSafetyNet();
+        };
+        recognition.onerror = () => { handleSafetyNet(); };
+    }
+
+    // シナリオ進行メインスイッチ
+    function progressStory() {
+        elFeedback.innerHTML = '';
+        
+        switch(currentStep) {
+            case 0:
+                runLoginRoutine();
+                break;
+            case 1:
+                elMicBtn.style.display = 'none';
+                elNextBtn.style.display = 'block';
+                changePose('pico', '01'); // 01: Normal
+                showText("ピコ「お腹をすかせた謎の生き物が倒れているよ…！」");
+                currentStep++;
+                break;
+            case 2:
+                changePose('pico', '03'); // 03: Surprised
+                showText("ピコ「この子の弱点（大好物）のカテゴリーは【果物】みたい！」");
+                currentStep++;
+                break;
+            case 3:
+                // 3.5秒のポーズ仕様：ピコが問いかけた後、自発的に考える時間を確保するため急かさず待機
+                elNextBtn.style.disabled = true;
+                elNextBtn.style.display = 'none';
+                showText("ピコ「何か【果物】の名前を1つ、英語で教えて！」");
+                
+                setTimeout(() => {
+                    showText("ピコ「何か【果物】の名前を1つ、英語で教えて！」\n（「こたえる」ボタンを押して発話してね）");
+                    elMicBtn.style.display = 'block';
+                }, 3500); // 3.5秒間待機
+                break;
+        }
+    }
+
+    /* ==========================================================================
+       4. 合否判定 ＆ 完全セーフティネット（全肯定ロジック）
+       ========================================================================== */
+    
+    // 正解時の処理
+    function handleCorrectAnswer() {
+        elMicBtn.style.display = 'none';
+        elFeedback.innerHTML = '<span class="fb-great">✅ Great!</span>';
+        changePose('pico', '07'); // 07: 拍手
+        
+        // モンスター図鑑解放演出（黒塗り解除・名前公開）
+        elMonsterImg.classList.remove('silhouette');
+        elMonsterName.innerText = "コング";
+        changePose('kong', '02'); // 02: Smile
+        
+        showText("ピコ「すごい！通じたよ！『apple』が大正解！」\nコングは元気にむしゃむしゃと食べ始めた！");
+        AUDIO_SYSTEM.playVoice('success_pico');
+
+        // 討伐フラグをローカルストレージへ保存（モンスター図鑑システム仕様）
+        localStorage.setItem('monster_001_cleared', 'true');
+
+        setTimeout(() => {
+            triggerOyasumiScene();
+        }, 3500);
+    }
+
+    // 完全セーフティネット（無限の全肯定ロジック）
+    function handleSafetyNet() {
+        elFeedback.innerHTML = '<span class="fb-miss">❌</span>';
+        changePose('pico', '05'); // 05: Smug face (ポンコツを自称してドヤ顔でかばう)
+        
+        safetyNetCount++;
+        AUDIO_SYSTEM.playVoice('hint_pico');
+
+        // AIのせいにして生徒を徹底的にかばう
+        if (safetyNetCount === 1) {
+            showText("ピコ「ピコの辞書に入ってない言葉だったみたい！ポンコツでごめんね！『あっぷる』って言ってみると伝わるかも？もう一回教えて！」");
+        } else {
+            showText("ピコ「ごめんごめん！ピコの耳がちょっと悪かったかな？よし、一緒に『アップル！』って言ってみよう！」");
+        }
+    }
+
+    /* ==========================================================================
+       5. AI自動合成「おやすみシーン」演出
+       ========================================================================== */
+    function triggerOyasumiScene() {
+        elNextBtn.style.display = 'none';
+        elMicBtn.style.display = 'none';
+        elFeedback.innerHTML = '';
+        
+        // 1. 背景を夜の森（青色フィルタークラス適用）に変更
+        elStage.classList.add('night');
+        
+        // 2. 登場キャラクターのポーズを08（Sleeping）に自動変更
+        changePose('pico', '08');
+        changePose('kong', '08');
+        
+        // 3. 頭上に「Zzz...」を浮かべる
+        elZzz.style.display = 'block';
+        
+        showText("ピコと新しく仲間になったコングは、夜の森ですやすやと眠りについた…【S001 クリア】");
+        console.log("第1話プロトタイプが正常に終了しました。リロードで再度テスト可能です。");
+    }
+
+
+    /* ==========================================================================
+       6. イベントリスナー定義
+       ========================================================================== */
+    elNextBtn.addEventListener('click', () => {
+        progressStory();
+    });
+
+    elMicBtn.addEventListener('click', () => {
+        if (!recognition) {
+            alert("お使いのブラウザは音声認識に対応していないか、マイクの権限がありません。");
+            return;
+        }
+        if (!isListening) {
+            elMicBtn.disabled = true;
+            recognition.start();
+        }
+    });
+
+    // 初回起動
+    window.addEventListener('DOMContentLoaded', () => {
+        showText("【Eigo DE Quest】プロトタイプへようこそ！\n画面をタップするか「次に進む」を押してスタート！");
+    });
 </script>
-
 </body>
 </html>
